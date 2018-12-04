@@ -12,21 +12,29 @@ func (pi PlayerInfo) TokenStr() string {
 	return string(pi.token)
 }
 
-type Space struct {
-	token rune
-}
+type Space *rune
 
 type Board struct {
-	spaces []*Space
+	spaces []Space
 }
 
 func EmptyBoard() Board {
 	b := Board{}
-	b.spaces = make([]*Space, 9)
+	b.spaces = make([]Space, 9)
 	for i := range b.spaces {
 		b.spaces[i] = nil
 	}
 	return b
+}
+
+func (b Board) rows() [][]Space {
+	rows := make([][]Space, 3)
+	for i, space := range b.spaces {
+		rowNumber := i / 3
+		row := rows[rowNumber]
+		rows[rowNumber] = append(row, space)
+	}
+	return rows
 }
 
 const rowSeparator = "===+===+==="
