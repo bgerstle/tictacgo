@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/bgerstle/tictacgo/internal/app/tictacgo"
@@ -9,8 +10,5 @@ import (
 func main() {
 	tictacgo.WriteWelcomeMessage(os.Stdout)
 	board := tictacgo.Board{}
-	writeErr := board.Write(os.Stdout)
-	if writeErr != nil {
-		panic(writeErr)
-	}
+	fmt.Print(board.String())
 }

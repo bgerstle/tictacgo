@@ -1,29 +1,38 @@
 package tictacgo
 
 import (
-	"fmt"
-	"io"
 	"strings"
 )
 
 type Board struct{}
 
-const rowSeparator = "=+=+="
+const rowSeparator = "===+===+==="
 const spaceSeparator = "|"
 
-func (b Board) Write(out io.Writer) error {
+func surroundWithSpaces(s string) string {
+	return " " + s + " "
+}
+
+func (b Board) String() string {
 	lines := []string{
-		strings.Join([]string{"0", "1", "2"}, spaceSeparator),
+		strings.Join([]string{
+			surroundWithSpaces("0"),
+			surroundWithSpaces("1"),
+			surroundWithSpaces("2"),
+		}, spaceSeparator),
 		rowSeparator,
-		strings.Join([]string{"3", "4", "5"}, spaceSeparator),
+		strings.Join([]string{
+			surroundWithSpaces("3"),
+			surroundWithSpaces("4"),
+			surroundWithSpaces("5"),
+		}, spaceSeparator),
 		rowSeparator,
-		strings.Join([]string{"6", "7", "8"}, spaceSeparator),
+		strings.Join([]string{
+			surroundWithSpaces("6"),
+			surroundWithSpaces("7"),
+			surroundWithSpaces("8"),
+		}, spaceSeparator),
+		"",
 	}
-	for _, line := range lines {
-		_, error := fmt.Fprintln(out, line)
-		if error != nil {
-			return error
-		}
-	}
-	return nil
+	return strings.Join(lines, "\n")
 }
