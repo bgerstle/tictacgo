@@ -1,21 +1,21 @@
 package tictacgo
 
 import (
+	"strconv"
 	"strings"
 )
-
-type PlayerInfo struct {
-	token rune
-}
-
-func (pi PlayerInfo) TokenStr() string {
-	return string(pi.token)
-}
 
 type Space *rune
 
 type Board struct {
 	spaces []Space
+}
+
+func spaceToString(space Space, fallback string) string {
+	if space == nil {
+		return fallback
+	}
+	return string(*space)
 }
 
 func EmptyBoard() Board {
@@ -45,25 +45,30 @@ func surroundWithSpaces(s string) string {
 }
 
 func (b Board) String() string {
-	lines := []string{
-		strings.Join([]string{
-			surroundWithSpaces("0"),
-			surroundWithSpaces("1"),
-			surroundWithSpaces("2"),
-		}, spaceSeparator),
-		rowSeparator,
-		strings.Join([]string{
-			surroundWithSpaces("3"),
-			surroundWithSpaces("4"),
-			surroundWithSpaces("5"),
-		}, spaceSeparator),
-		rowSeparator,
-		strings.Join([]string{
-			surroundWithSpaces("6"),
-			surroundWithSpaces("7"),
-			surroundWithSpaces("8"),
-		}, spaceSeparator),
-		"",
+	spaceStrs := make([]string, len(b.spaces))
+	for i, space := range b.spaces {
+		spaceStrs[i] = surroundWithSpaces(spaceToString(space, strconv.Itoa(i)))
 	}
-	return strings.Join(lines, "\n")
+
+	rows := make([]string, 3)
+	for i, token := range spaceStrs {
+		rowNumber := i / 3
+		row := rows[rowNumber]
+		if row != "" {
+			row += spaceSeparator
+		}
+		rows[rowNumber] = row + token
+	}
+
+	builder := strings.Builder{}
+
+	for i, row := range rows {
+		if i != 0 {
+			builder.WriteString(rowSeparator)
+			builder.WriteString("\n")
+		}
+		builder.WriteString(row)
+		builder.WriteString("\n")
+	}
+	return builder.String()
 }

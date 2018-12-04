@@ -46,7 +46,7 @@ func TestBoard(t *testing.T) {
 		rows := board.rows()
 		assert.Equal([]Space{nil, X, X}, rows[0])
 		assert.Equal([]Space{O, O, nil}, rows[1])
-		assert.Equal([]Space{X, nil, O}, rows[1])
+		assert.Equal([]Space{X, nil, O}, rows[2])
 	})
 
 	t.Run("Prints tokens in the spaces they occupy", func(t *testing.T) {
@@ -62,8 +62,33 @@ func TestBoard(t *testing.T) {
 			},
 		}
 		boardStringLines := strings.Split(board.String(), "\n")
-		assert.Equal(" 0 | X | X ", boardStringLines[0])
-		assert.Equal(" O | O | 5 ", boardStringLines[1])
-		assert.Equal(" X | 7 | O ", boardStringLines[2])
+		assert.Equal(
+			[]string{
+				" 0 | X | X ",
+				rowSeparator,
+				" O | O | 5 ",
+				rowSeparator,
+				" X | 7 | O ",
+				"",
+			},
+			boardStringLines)
+	})
+}
+
+func TestSpaceToString(t *testing.T) {
+	assert := assert.New(t)
+
+	t.Run("Space with token", func(t *testing.T) {
+		x := 'X'
+		X := Space(&x)
+
+		assert.Equal(string(x), spaceToString(X, "1"))
+	})
+
+	t.Run("Space without token", func(t *testing.T) {
+		fallback := "0"
+		X := Space(nil)
+
+		assert.Equal(fallback, spaceToString(X, fallback))
 	})
 }
