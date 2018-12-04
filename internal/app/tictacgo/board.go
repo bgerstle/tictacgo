@@ -5,9 +5,12 @@ import (
 	"strings"
 )
 
+// Space on a board, can either contain a run (e.g. 'X') or `nil` if the space is empty.
 type Space *rune
 
+// Board represents the board in a game of Tic Tac Toe.
 type Board struct {
+	// The spaces on the board. Not meant to be manipulated directly.
 	spaces []Space
 }
 
@@ -18,12 +21,14 @@ func spaceToString(space Space, fallback string) string {
 	return string(*space)
 }
 
+// EmptyBoard creates a new Board with empty spaces.
 func EmptyBoard() Board {
 	b := Board{}
 	b.spaces = make([]Space, 9)
 	return b
 }
 
+// Get the spaces on the board partitioned into rows
 func (b Board) rows() [][]Space {
 	rows := make([][]Space, 3)
 	for i, space := range b.spaces {
@@ -41,6 +46,7 @@ func surroundWithSpaces(s string) string {
 	return " " + s + " "
 }
 
+// Serialize the board into a string, suitable for writing to the console.
 func (b Board) String() string {
 	spaceStrs := make([]string, len(b.spaces))
 	for i, space := range b.spaces {
