@@ -4,7 +4,30 @@ import (
 	"strings"
 )
 
-type Board struct{}
+type PlayerInfo struct {
+	token rune
+}
+
+func (pi PlayerInfo) TokenStr() string {
+	return string(pi.token)
+}
+
+type Space struct {
+	token rune
+}
+
+type Board struct {
+	spaces []*Space
+}
+
+func NewBoard() Board {
+	b := Board{}
+	b.spaces = make([]*Space, 9)
+	for i := range b.spaces {
+		b.spaces[i] = nil
+	}
+	return b
+}
 
 const rowSeparator = "===+===+==="
 const spaceSeparator = "|"

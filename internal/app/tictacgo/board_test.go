@@ -9,14 +9,24 @@ import (
 func TestBoard(t *testing.T) {
 	assert := assert.New(t)
 
-	board := Board{}
+	t.Run("Initializes as empty", func(t *testing.T) {
+		board := NewBoard()
 
-	assert.Equal(
-		` 0 | 1 | 2 
+		for _, space := range board.spaces {
+			assert.Nil(space)
+		}
+	})
+
+	t.Run("Prints expected output when empty", func(t *testing.T) {
+		board := NewBoard()
+
+		assert.Equal(
+			` 0 | 1 | 2 
 ===+===+===
  3 | 4 | 5 
 ===+===+===
  6 | 7 | 8 
 `,
-		board.String())
+			board.String())
+	})
 }

@@ -54,7 +54,7 @@ func TestWelcomeMessage(t *testing.T) {
 
 	actualBoardLines := combinedOutLines[1:]
 
-	expectedBoardLines := strings.Split(tictacgo.Board{}.String(), "\n")
+	expectedBoardLines := strings.Split(tictacgo.NewBoard().String(), "\n")
 
 	firstOutputBoardLineIndex :=
 		sort.SearchStrings(actualBoardLines, expectedBoardLines[0])

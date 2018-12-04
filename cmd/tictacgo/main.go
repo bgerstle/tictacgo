@@ -9,6 +9,6 @@ import (
 
 func main() {
 	tictacgo.WriteWelcomeMessage(os.Stdout)
-	board := tictacgo.Board{}
+	board := tictacgo.NewBoard()
 	fmt.Print(board.String())
 }
