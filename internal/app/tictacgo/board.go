@@ -20,7 +20,7 @@ type Board struct {
 	spaces []*Space
 }
 
-func NewBoard() Board {
+func EmptyBoard() Board {
 	b := Board{}
 	b.spaces = make([]*Space, 9)
 	for i := range b.spaces {
