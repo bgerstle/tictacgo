@@ -26,24 +26,37 @@ func ReadAllLines(reader io.Reader) ([]string, error) {
 	return allLines, nil
 }
 
-func TestWelcomeMessage(t *testing.T) {
-	assert := assert.New(t)
+func StartTicTacGo(t *testing.T) (cmd *exec.Cmd, out io.Reader, in io.Writer) {
+	t.Helper()
+
 	require := require.New(t)
 
 	ttgCmd := exec.Command("go", "run", "../../cmd/tictacgo/main.go")
 
-	ttgStdout, stdoutErr := ttgCmd.StdoutPipe()
+	stdout, stdoutErr := ttgCmd.StdoutPipe()
 	require.Nil(stdoutErr)
 
-	ttgStderr, stderrErr := ttgCmd.StderrPipe()
+	stderr, stderrErr := ttgCmd.StderrPipe()
 	require.Nil(stderrErr)
 
-	combinedPipe := io.MultiReader(ttgStdout, ttgStderr)
+	stdin, stdinErr := ttgCmd.StdinPipe()
+	require.Nil(stdinErr)
+
+	combinedOut := io.MultiReader(stdout, stderr)
 
 	startErr := ttgCmd.Start()
 	require.Nil(startErr)
 
-	combinedOutLines, readAllErr := ReadAllLines(combinedPipe)
+	return ttgCmd, combinedOut, stdin
+}
+
+func TestInitialOutput(t *testing.T) {
+	assert := assert.New(t)
+	require := require.New(t)
+
+	ttgCmd, combinedOut, _ := StartTicTacGo(t)
+
+	combinedOutLines, readAllErr := ReadAllLines(combinedOut)
 	require.Nil(readAllErr)
 
 	require.Condition(func() (success bool) {
@@ -63,14 +76,26 @@ func TestWelcomeMessage(t *testing.T) {
 		len(actualBoardLines)-1, firstOutputBoardLineIndex,
 		"Couldn't find first line of board in output")
 
-	lastOutputBoardLineIndex := firstOutputBoardLineIndex + len(expectedBoardLines)
+	lastOutputBoardLineIndex := firstOutputBoardLineIndex + len(expectedBoardLines) - 1
 
 	actualRestOfBoard :=
-		actualBoardLines[firstOutputBoardLineIndex+1 : lastOutputBoardLineIndex]
+		actualBoardLines[firstOutputBoardLineIndex+1 : lastOutputBoardLineIndex+1]
 
 	assert.Equal(
 		expectedBoardLines[1:],
 		actualRestOfBoard)
+
+	promptLineIndex := lastOutputBoardLineIndex + 1
+
+	require.Condition(
+		func() (success bool) {
+			return promptLineIndex < len(combinedOutLines)
+		},
+		"Expected to find prompt for user input, but ran out of output lines")
+
+	prompt := combinedOutLines[promptLineIndex]
+
+	assert.Equal("Enter X's move: ", prompt)
 
 	ttgCmd.Wait()
 }
