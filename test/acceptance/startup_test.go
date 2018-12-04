@@ -4,6 +4,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os/exec"
+	"sort"
 	"strings"
 	"testing"
 
@@ -45,8 +46,36 @@ func TestWelcomeMessage(t *testing.T) {
 	combinedOutLines, readAllErr := ReadAllLines(combinedPipe)
 	require.Nil(readAllErr)
 
-	require.Equal(1, len(combinedOutLines))
+	require.Condition(func() (success bool) {
+		return len(combinedOutLines) > 1
+	}, "Expected output to have more than 1 line")
+
 	assert.Equal(tictacgo.WelcomeMessage, combinedOutLines[0])
+
+	actualBoardLines := combinedOutLines[1:]
+
+	expectedBoardLines := strings.Split(`0|1|2
+=+=+=
+3|4|5
+=+=+=
+6|7|8
+`, "\n")
+
+	firstOutputBoardLineIndex :=
+		sort.SearchStrings(actualBoardLines, expectedBoardLines[0])
+
+	require.NotEqual(
+		len(actualBoardLines)-1, firstOutputBoardLineIndex,
+		"Couldn't find first line of board in output")
+
+	lastOutputBoardLineIndex := firstOutputBoardLineIndex + len(expectedBoardLines)
+
+	actualRestOfBoard :=
+		actualBoardLines[firstOutputBoardLineIndex+1 : lastOutputBoardLineIndex]
+
+	assert.Equal(
+		expectedBoardLines[1:],
+		actualRestOfBoard)
 
 	ttgCmd.Wait()
 }
