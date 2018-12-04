@@ -12,7 +12,8 @@ Getting started.
 ## v0.1.0
 Modeling and printing the game board.
 
-- [ ] Print empty board
+- [x] Print empty board
+- [ ] Print board with player moves on it
 
 ## v0.2.0
 Accept user input (no game-end state yet).
