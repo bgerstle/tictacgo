@@ -21,9 +21,6 @@ func spaceToString(space Space, fallback string) string {
 func EmptyBoard() Board {
 	b := Board{}
 	b.spaces = make([]Space, 9)
-	for i := range b.spaces {
-		b.spaces[i] = nil
-	}
 	return b
 }
 
