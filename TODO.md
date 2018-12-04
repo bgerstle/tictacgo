@@ -13,7 +13,7 @@ Getting started.
 Modeling and printing the game board.
 
 - [x] Print empty board
-- [ ] Print board with player moves on it
+- [x] Print board with player moves on it
 
 ## v0.2.0
 Accept user input (no game-end state yet).
