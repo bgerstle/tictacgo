@@ -20,6 +20,8 @@ To compile a static executable, use `go build`:
 go build github.com/bgerstle/tictacgo/cmd/tictacgo
 ```
 
+> or `make [build]`
+
 The result will be in the root directory, which you can run via: `./tictacgo`.
 
 ## Running The App
@@ -29,6 +31,8 @@ Build and run the app as described above, or you can run from source using `go r
 go run github.com/bgerstle/tictacgo/cmd/tictacgo/main.go
 ```
 
+> or `make run`
+
 ## Running The Tests
 Tests are run using `go test`, using the "recursive import path" specifier (`./...`):
 
@@ -36,9 +40,13 @@ Tests are run using `go test`, using the "recursive import path" specifier (`./.
 - Unit tests: `go test ./internal/...`
 - Acceptance Tests: `go test ./test/acceptance/...`
 
+> or `make [unit-|acceptance-]test`
+
 ## Linting The Code
 Code is linted using `golint`
 
 ``` shell
 golint ./...
 ```
+
+> or `make lint`
