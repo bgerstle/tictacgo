@@ -53,3 +53,4 @@ Allow player to choose who goes first
 
 - [ ] After game ends, prompt for rematch
 - [ ] Allow player to customize player tokens
+- [ ] Variable board sizes
