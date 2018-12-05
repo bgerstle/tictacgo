@@ -8,14 +8,18 @@ import (
 )
 
 func TestBoard(t *testing.T) {
-	t.Run("Initializes as empty", func(t *testing.T) {
+	t.Run("Initializes as empty, with all spaces available", func(t *testing.T) {
 		assert := assert.New(t)
 
 		board := EmptyBoard()
 
-		for _, space := range board.spaces {
+		availableSpaces := make([]int, len(board.spaces))
+		for spaceToAssign, space := range board.spaces {
+			availableSpaces[spaceToAssign] = spaceToAssign
 			assert.Nil(space)
 		}
+
+		assert.Equal(availableSpaces, board.AvailableSpaces())
 	})
 
 	t.Run("Returns expected rows", func(t *testing.T) {
@@ -36,6 +40,29 @@ func TestBoard(t *testing.T) {
 		assert.Equal([]Space{nil, X, X}, rows[0])
 		assert.Equal([]Space{O, O, nil}, rows[1])
 		assert.Equal([]Space{X, nil, O}, rows[2])
+	})
+
+	t.Run("Returns all but the assigned space", func(t *testing.T) {
+		assert := assert.New(t)
+
+		x := 'X'
+		X := Space(&x)
+
+		for spaceToAssign := range EmptyBoard().spaces {
+			board := EmptyBoard()
+
+			expectedSpacesAfterAssign := board.AvailableSpaces()
+			// remove the space we're about to assign from the current available spaces
+			expectedSpacesAfterAssign =
+				append(expectedSpacesAfterAssign[0:spaceToAssign], expectedSpacesAfterAssign[spaceToAssign+1:]...)
+
+			board.AssignSpace(spaceToAssign, X)
+
+			newAvailableSpaces := board.AvailableSpaces()
+
+			assert.Equal(X, board.spaces[spaceToAssign])
+			assert.Equal(expectedSpacesAfterAssign, newAvailableSpaces)
+		}
 	})
 }
 

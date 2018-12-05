@@ -1,6 +1,7 @@
 package tictacgo
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -26,6 +27,27 @@ func EmptyBoard() Board {
 	b := Board{}
 	b.spaces = make([]Space, 9)
 	return b
+}
+
+func (b Board) AvailableSpaces() (spaces []int) {
+	for i, space := range b.spaces {
+		if space == nil {
+			spaces = append(spaces, i)
+		}
+	}
+	return
+}
+
+func (b Board) SpacesCount() int {
+	return len(b.spaces)
+}
+
+func (b Board) AssignSpace(index int, value Space) {
+	maxIndex := b.SpacesCount() - 1
+	if index < 0 || index > maxIndex {
+		panic(fmt.Sprintf("Space index must be in bounds (0 < index < %d), got %d", maxIndex, index))
+	}
+	b.spaces[index] = value
 }
 
 // Get the spaces on the board partitioned into rows
