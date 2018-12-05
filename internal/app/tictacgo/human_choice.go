@@ -13,7 +13,7 @@ func NewHumanPlayer(info PlayerInfo) humanPlayer {
 	hp := humanPlayer{
 		PlayerInfo: info,
 		choiceProvider: ioHumanChoiceProvider{
-			in:  os.Stdin,
+			in:  bufio.NewReader(os.Stdin),
 			out: os.Stdout,
 		},
 	}
@@ -21,26 +21,35 @@ func NewHumanPlayer(info PlayerInfo) humanPlayer {
 }
 
 type ioHumanChoiceProvider struct {
-	in  io.Reader
+	// Must use the same buffered reader to avoid losing input
+	// b/t calls to getChoice
+	in  *bufio.Reader
 	out io.Writer
 }
 
 const PlayerMovePromptf = "Make your move, %c: "
 
 func (cp ioHumanChoiceProvider) getChoice(p PlayerInfo, board Board) (int, error) {
-	reader := bufio.NewReader(cp.in)
 	fmt.Fprintf(cp.out, PlayerMovePromptf, p.Token)
-	input, readErr := reader.ReadString(byte('\n'))
+	input, readErr := cp.in.ReadString(byte('\n'))
 	if readErr != nil {
 		fmt.Fprintf(os.Stderr, "Player input encountered error %s", readErr.Error())
-		fmt.Fprintln(cp.out, "Oops! Let's try again...")
+		fmt.Fprintln(cp.out, "Oops, something went wrong! Let's try again...")
 		return -1, readErr
 	}
 	choice, atoiErr := strconv.Atoi(strings.TrimSpace(input))
 	if atoiErr != nil {
-		fmt.Fprintf(os.Stderr, "Failed to convert user input to int: %s", readErr.Error())
-		fmt.Fprintln(cp.out, "Choices must be one of the available spaces on the board. Let's try again.")
+		fmt.Fprintf(os.Stderr, "Failed to convert user input to int: %s", atoiErr.Error())
+		fmt.Fprintln(cp.out, "That doesn't look like a number, please enter one of the available spaces.")
 		return -1, atoiErr
+	}
+	if choice >= board.SpacesLen() {
+		fmt.Fprintf(cp.out, "Please choose one of the available spaces.")
+		return choice, fmt.Errorf("Choice %d out of bounds", choice)
+	}
+	if !board.IsSpaceAvailable(choice) {
+		fmt.Fprintf(cp.out, "Space '%d' is already taken, please enter one of the spaces on the board.", choice)
+		return choice, fmt.Errorf("Choice %d already taken", choice)
 	}
 	return choice, nil
 }
