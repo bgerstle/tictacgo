@@ -48,9 +48,13 @@ func (r UnbufferedReader) ReadBytesUntil(delim byte) (s string, e error) {
 	return
 }
 
+func (r UnbufferedReader) ReadLine() (string, error) {
+	return r.ReadBytesUntil(byte('\n'))
+}
+
 func (r UnbufferedReader) ReadLinesUntil(sentinel string, maxLines int) (lines []string, error error) {
 	for i := 0; i < maxLines; i++ {
-		line, error := r.ReadBytesUntil(byte('\n'))
+		line, error := r.ReadLine()
 		if error != nil {
 			break
 		}

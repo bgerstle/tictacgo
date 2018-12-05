@@ -37,7 +37,7 @@ func TestEnterMove(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
 
-	ttgCmd, combinedOut, _ := StartTicTacGo(t)
+	ttgCmd, combinedOut, in := StartTicTacGo(t)
 
 	ReadInitialOutput(t, combinedOut)
 
@@ -53,7 +53,13 @@ func TestEnterMove(t *testing.T) {
 
 	assert.Equal(expectedPrompt, actualPrompt)
 
-	killErr := ttgCmd.Process.Kill()
+	fmt.Fprintln(in, "4")
 
-	require.Nil(killErr)
+	tempResponse, tempResponseErr := reader.ReadLine()
+
+	require.Nil(tempResponseErr)
+
+	assert.Equal("X chose space 4", tempResponse)
+
+	ttgCmd.Wait()
 }
