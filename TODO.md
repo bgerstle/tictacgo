@@ -18,10 +18,10 @@ Modeling and printing the game board.
 ## v0.2.0
 Accept user input (no game-end state yet).
 
-- [ ] Ask for X's move
-- [ ] Ask for O's move
-- [ ] Reject input if spot is already taken
-- [ ] Reject invalid spot choice
+- [x] Ask for X's move
+- [x] Ask for O's move
+- [x] Reject input if spot is already taken
+- [x] Reject invalid spot choice
 
 ## v0.3.0
 Game states.
