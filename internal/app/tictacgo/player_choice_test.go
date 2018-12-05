@@ -57,9 +57,9 @@ func TestIOHumanChoiceProvider(t *testing.T) {
 	})
 
 	invalidInputExamples := []string{
-		// "",
-		// "a\n",
-		// "abc\n",
+		"",
+		"a\n",
+		"abc\n",
 		"10000\n",
 		"-1\n",
 	}
