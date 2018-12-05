@@ -38,20 +38,23 @@ Make the robot unbeatable (minmimax).
 
 - [ ] Implement minimax algorithm
 
-## v0.6.0
-Allow player to choose difficulty
+## Unscheduled features
+Better, faster, stronger
+- [ ] Optimize bot algorithm (alpha-beta pruning)
 
+Allow player to choose difficulty
 - [ ] Prompt player for computer difficulty (easy/hard)
 - [ ] Reject invalid difficulty choices
 
-## v0.7.0
-Allow player to choose who goes first
+Rematch
+- [ ] After game ends, prompt for rematch
 
+Allow player to choose who goes first
 - [ ] Prompt player for who goes first
 - [ ] Reject invalid turn choices
 
-## Unscheduled features
-
-- [ ] After game ends, prompt for rematch
+Custom tokens
 - [ ] Allow player to customize player tokens
+
+TTG to the max
 - [ ] Variable board sizes
