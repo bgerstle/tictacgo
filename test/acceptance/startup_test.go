@@ -63,5 +63,5 @@ func TestEnterMove(t *testing.T) {
 
 	assert.Equal("X chose space 4\n", tempResponse)
 
-	testHarness.Cmd.Wait()
+	testHarness.Cmd.Process.Kill()
 }
