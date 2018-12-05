@@ -8,9 +8,9 @@ import (
 )
 
 func TestBoard(t *testing.T) {
-	assert := assert.New(t)
-
 	t.Run("Initializes as empty", func(t *testing.T) {
+		assert := assert.New(t)
+
 		board := EmptyBoard()
 
 		for _, space := range board.spaces {
@@ -18,20 +18,9 @@ func TestBoard(t *testing.T) {
 		}
 	})
 
-	t.Run("Prints expected output when empty", func(t *testing.T) {
-		board := EmptyBoard()
-
-		assert.Equal(
-			` 0 | 1 | 2 
-===+===+===
- 3 | 4 | 5 
-===+===+===
- 6 | 7 | 8 
-`,
-			board.String())
-	})
-
 	t.Run("Returns expected rows", func(t *testing.T) {
+		assert := assert.New(t)
+
 		x := 'X'
 		o := 'O'
 		X := Space(&x)
@@ -48,8 +37,27 @@ func TestBoard(t *testing.T) {
 		assert.Equal([]Space{O, O, nil}, rows[1])
 		assert.Equal([]Space{X, nil, O}, rows[2])
 	})
+}
+
+func TestBoardPrinting(t *testing.T) {
+	t.Run("Prints expected output when empty", func(t *testing.T) {
+		assert := assert.New(t)
+
+		board := EmptyBoard()
+
+		assert.Equal(
+			` 0 | 1 | 2 
+===+===+===
+ 3 | 4 | 5 
+===+===+===
+ 6 | 7 | 8 
+`,
+			board.String())
+	})
 
 	t.Run("Prints tokens in the spaces they occupy", func(t *testing.T) {
+		assert := assert.New(t)
+
 		x := 'X'
 		o := 'O'
 		X := Space(&x)
@@ -73,12 +81,13 @@ func TestBoard(t *testing.T) {
 			},
 			boardStringLines)
 	})
+
 }
 
 func TestSpaceToString(t *testing.T) {
-	assert := assert.New(t)
-
 	t.Run("Space with token", func(t *testing.T) {
+		assert := assert.New(t)
+
 		x := 'X'
 		X := Space(&x)
 
@@ -86,6 +95,8 @@ func TestSpaceToString(t *testing.T) {
 	})
 
 	t.Run("Space without token", func(t *testing.T) {
+		assert := assert.New(t)
+
 		fallback := "0"
 		X := Space(nil)
 
