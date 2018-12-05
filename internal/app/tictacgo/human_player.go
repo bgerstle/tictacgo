@@ -9,10 +9,12 @@ type humanPlayer struct {
 	choiceProvider humanChoiceProvider
 }
 
+// Info will return the info for this player
 func (hp humanPlayer) Info() PlayerInfo {
 	return hp.PlayerInfo
 }
 
+// ChooseSpace will ask the user for their desired space, retrying on error
 func (p humanPlayer) ChooseSpace(board Board) int {
 	var choice int
 	for {

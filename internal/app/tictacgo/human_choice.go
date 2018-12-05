@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+// NewHumanPlayer is a factory that creates a human player with the default choice picker.
 func NewHumanPlayer(info PlayerInfo) humanPlayer {
 	hp := humanPlayer{
 		PlayerInfo: info,
@@ -27,8 +28,10 @@ type ioHumanChoiceProvider struct {
 	out io.Writer
 }
 
+// PlayerMovePromptf is a format string accepting a player's token.
 const PlayerMovePromptf = "Make your move, %c: "
 
+// Internal type used for getting choices from stdin/stdout, and writing error messages
 func (cp ioHumanChoiceProvider) getChoice(p PlayerInfo, board Board) (int, error) {
 	fmt.Fprintf(cp.out, PlayerMovePromptf, p.Token)
 	input, readErr := cp.in.ReadString(byte('\n'))
