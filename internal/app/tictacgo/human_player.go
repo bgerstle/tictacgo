@@ -10,8 +10,8 @@ type humanPlayer struct {
 }
 
 // Info will return the info for this player
-func (hp humanPlayer) Info() PlayerInfo {
-	return hp.PlayerInfo
+func (p humanPlayer) Info() PlayerInfo {
+	return p.PlayerInfo
 }
 
 // ChooseSpace will ask the user for their desired space, retrying on error

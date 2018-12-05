@@ -29,6 +29,7 @@ func EmptyBoard() Board {
 	return b
 }
 
+// AvailableSpaces returns a list of indexes for empty spaces on the board.
 func (b Board) AvailableSpaces() []int {
 	availableSpaces := []int{}
 	for i, space := range b.spaces {
@@ -39,6 +40,7 @@ func (b Board) AvailableSpaces() []int {
 	return availableSpaces
 }
 
+// SpacesLen returns the total number of spaces on the board (i.e. 9 for a 3x3).
 func (b Board) SpacesLen() int {
 	return len(b.spaces)
 }
@@ -50,11 +52,14 @@ func (b Board) assertInBounds(index int) {
 	}
 }
 
+// IsSpaceAvailable returns whether or not the space at the specified index has a token.
 func (b Board) IsSpaceAvailable(index int) bool {
 	b.assertInBounds(index)
 	return b.spaces[index] == nil
 }
 
+// AssignSpace returns a new board with the chosen space assigned.
+// A new board is returned in order to keep boards (publicly) immutable.
 func (b Board) AssignSpace(index int, value Space) Board {
 	b.assertInBounds(index)
 	newBoard := EmptyBoard()
