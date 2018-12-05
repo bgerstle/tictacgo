@@ -7,6 +7,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var x = 'X'
+var o = 'O'
+var X = Space(&x)
+var O = Space(&o)
+
 func TestBoard(t *testing.T) {
 	t.Run("Initializes as empty, with all spaces available", func(t *testing.T) {
 		assert := assert.New(t)
@@ -14,8 +19,9 @@ func TestBoard(t *testing.T) {
 		board := EmptyBoard()
 
 		availableSpaces := make([]int, len(board.spaces))
-		for spaceToAssign, space := range board.spaces {
-			availableSpaces[spaceToAssign] = spaceToAssign
+		for i, space := range board.spaces {
+			availableSpaces[i] = i
+			assert.True(board.IsSpaceAvailable(i))
 			assert.Nil(space)
 		}
 
@@ -25,10 +31,6 @@ func TestBoard(t *testing.T) {
 	t.Run("Returns expected rows", func(t *testing.T) {
 		assert := assert.New(t)
 
-		x := 'X'
-		o := 'O'
-		X := Space(&x)
-		O := Space(&o)
 		board := Board{
 			spaces: []Space{
 				nil, X, X,
@@ -42,28 +44,29 @@ func TestBoard(t *testing.T) {
 		assert.Equal([]Space{X, nil, O}, rows[2])
 	})
 
-	t.Run("Returns all but the assigned space", func(t *testing.T) {
-		assert := assert.New(t)
-
-		x := 'X'
-		X := Space(&x)
-
-		for spaceToAssign := range EmptyBoard().spaces {
-			board := EmptyBoard()
-
-			expectedSpacesAfterAssign := board.AvailableSpaces()
-			// remove the space we're about to assign from the current available spaces
-			expectedSpacesAfterAssign =
-				append(expectedSpacesAfterAssign[0:spaceToAssign], expectedSpacesAfterAssign[spaceToAssign+1:]...)
-
-			board.AssignSpace(spaceToAssign, X)
-
-			newAvailableSpaces := board.AvailableSpaces()
-
-			assert.Equal(X, board.spaces[spaceToAssign])
-			assert.Equal(expectedSpacesAfterAssign, newAvailableSpaces)
-		}
+	t.Run("Returns all but the assigned spaces", func(t *testing.T) {
+		_testTakingAvailableSpace(t, EmptyBoard())
 	})
+}
+
+func _testTakingAvailableSpace(t *testing.T, board Board) {
+	t.Helper()
+	assert := assert.New(t)
+
+	preAssignAvailableSpaces := board.AvailableSpaces()
+	spaceToAssign := preAssignAvailableSpaces[0]
+	expectedSpacesAfterAssign := preAssignAvailableSpaces[1:]
+
+	newBoard := board.AssignSpace(spaceToAssign, X)
+
+	assert.Equal(X, newBoard.spaces[spaceToAssign])
+	assert.Equal(expectedSpacesAfterAssign, newBoard.AvailableSpaces())
+	assert.Equal(preAssignAvailableSpaces, board.AvailableSpaces(), "original board should remain the same")
+	assert.False(newBoard.IsSpaceAvailable(spaceToAssign))
+
+	if len(newBoard.AvailableSpaces()) != 0 {
+		_testTakingAvailableSpace(t, newBoard)
+	}
 }
 
 func TestBoardPrinting(t *testing.T) {
@@ -85,10 +88,6 @@ func TestBoardPrinting(t *testing.T) {
 	t.Run("Prints tokens in the spaces they occupy", func(t *testing.T) {
 		assert := assert.New(t)
 
-		x := 'X'
-		o := 'O'
-		X := Space(&x)
-		O := Space(&o)
 		board := Board{
 			spaces: []Space{
 				nil, X, X,
@@ -115,9 +114,6 @@ func TestSpaceToString(t *testing.T) {
 	t.Run("Space with token", func(t *testing.T) {
 		assert := assert.New(t)
 
-		x := 'X'
-		X := Space(&x)
-
 		assert.Equal(string(x), spaceToString(X, "1"))
 	})
 
@@ -125,8 +121,7 @@ func TestSpaceToString(t *testing.T) {
 		assert := assert.New(t)
 
 		fallback := "0"
-		X := Space(nil)
 
-		assert.Equal(fallback, spaceToString(X, fallback))
+		assert.Equal(fallback, spaceToString(Space(nil), fallback))
 	})
 }

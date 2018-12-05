@@ -29,25 +29,38 @@ func EmptyBoard() Board {
 	return b
 }
 
-func (b Board) AvailableSpaces() (spaces []int) {
+func (b Board) AvailableSpaces() []int {
+	availableSpaces := []int{}
 	for i, space := range b.spaces {
 		if space == nil {
-			spaces = append(spaces, i)
+			availableSpaces = append(availableSpaces, i)
 		}
 	}
-	return
+	return availableSpaces
 }
 
-func (b Board) SpacesCount() int {
+func (b Board) SpacesLen() int {
 	return len(b.spaces)
 }
 
-func (b Board) AssignSpace(index int, value Space) {
-	maxIndex := b.SpacesCount() - 1
+func (b Board) assertInBounds(index int) {
+	maxIndex := b.SpacesLen() - 1
 	if index < 0 || index > maxIndex {
 		panic(fmt.Sprintf("Space index must be in bounds (0 < index < %d), got %d", maxIndex, index))
 	}
-	b.spaces[index] = value
+}
+
+func (b Board) IsSpaceAvailable(index int) bool {
+	b.assertInBounds(index)
+	return b.spaces[index] == nil
+}
+
+func (b Board) AssignSpace(index int, value Space) Board {
+	b.assertInBounds(index)
+	newBoard := EmptyBoard()
+	copy(newBoard.spaces, b.spaces)
+	newBoard.spaces[index] = value
+	return newBoard
 }
 
 // Get the spaces on the board partitioned into rows
