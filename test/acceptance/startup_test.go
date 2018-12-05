@@ -1,10 +1,7 @@
 package tictacgo_test
 
 import (
-	"io"
-	"io/ioutil"
-	"os/exec"
-	"sort"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -13,89 +10,50 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func ReadAllLines(reader io.Reader) ([]string, error) {
-	allOut, allErr := ioutil.ReadAll(reader)
-	if allErr != nil {
-		return nil, allErr
-	}
-	allLines := strings.Split(string(allOut), "\n")
-	allLinesLen := len(allLines)
-	if allLinesLen > 1 && allLines[allLinesLen-1] == "" {
-		allLines = allLines[:allLinesLen-1]
-	}
-	return allLines, nil
-}
-
-func StartTicTacGo(t *testing.T) (cmd *exec.Cmd, out io.Reader, in io.Writer) {
-	t.Helper()
-
-	require := require.New(t)
-
-	ttgCmd := exec.Command("go", "run", "../../cmd/tictacgo/main.go")
-
-	stdout, stdoutErr := ttgCmd.StdoutPipe()
-	require.Nil(stdoutErr)
-
-	stderr, stderrErr := ttgCmd.StderrPipe()
-	require.Nil(stderrErr)
-
-	stdin, stdinErr := ttgCmd.StdinPipe()
-	require.Nil(stdinErr)
-
-	combinedOut := io.MultiReader(stdout, stderr)
-
-	startErr := ttgCmd.Start()
-	require.Nil(startErr)
-
-	return ttgCmd, combinedOut, stdin
-}
-
 func TestInitialOutput(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
 
 	ttgCmd, combinedOut, _ := StartTicTacGo(t)
 
-	combinedOutLines, readAllErr := ReadAllLines(combinedOut)
-	require.Nil(readAllErr)
+	expectedBoardLines := strings.Split(tictacgo.EmptyBoard().String(), "\n")
+	// drop trailing empty line
+	expectedBoardLines = expectedBoardLines[0 : len(expectedBoardLines)-1]
 
-	require.Condition(func() (success bool) {
-		return len(combinedOutLines) > 1
-	}, "Expected output to have more than 1 line")
+	combinedOutLines := ReadInitialOutput(t, combinedOut)
 
 	assert.Equal(tictacgo.WelcomeMessage, combinedOutLines[0])
 
-	actualBoardLines := combinedOutLines[1:]
+	actualBoardLines := combinedOutLines[1 : len(expectedBoardLines)+1]
 
-	expectedBoardLines := strings.Split(tictacgo.EmptyBoard().String(), "\n")
+	require.Equal(expectedBoardLines, actualBoardLines)
 
-	firstOutputBoardLineIndex :=
-		sort.SearchStrings(actualBoardLines, expectedBoardLines[0])
+	killErr := ttgCmd.Process.Kill()
 
-	require.NotEqual(
-		len(actualBoardLines)-1, firstOutputBoardLineIndex,
-		"Couldn't find first line of board in output")
+	require.Nil(killErr)
+}
 
-	lastOutputBoardLineIndex := firstOutputBoardLineIndex + len(expectedBoardLines) - 1
+func TestEnterMove(t *testing.T) {
+	assert := assert.New(t)
+	require := require.New(t)
 
-	actualRestOfBoard :=
-		actualBoardLines[firstOutputBoardLineIndex+1 : lastOutputBoardLineIndex+1]
+	ttgCmd, combinedOut, _ := StartTicTacGo(t)
 
-	assert.Equal(
-		expectedBoardLines[1:],
-		actualRestOfBoard)
+	ReadInitialOutput(t, combinedOut)
 
-	promptLineIndex := lastOutputBoardLineIndex + 1
+	expectedPrompt := fmt.Sprintf(tictacgo.PlayerMovePromptf, 'X')
 
-	require.Condition(
-		func() (success bool) {
-			return promptLineIndex < len(combinedOutLines)
-		},
-		"Expected to find prompt for user input, but ran out of output lines")
+	reader := NewUnbufferedReader(combinedOut)
 
-	prompt := combinedOutLines[promptLineIndex]
+	actualPromptBytes, readError := reader.ReadBytes(len([]byte(expectedPrompt)))
 
-	assert.Equal("Enter X's move: ", prompt)
+	require.Nil(readError)
 
-	ttgCmd.Wait()
+	actualPrompt := string(actualPromptBytes)
+
+	assert.Equal(expectedPrompt, actualPrompt)
+
+	killErr := ttgCmd.Process.Kill()
+
+	require.Nil(killErr)
 }
