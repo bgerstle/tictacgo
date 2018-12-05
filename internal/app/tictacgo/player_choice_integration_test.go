@@ -10,13 +10,6 @@ import (
 )
 
 func TestIOHumanChoiceProviderIntegration(t *testing.T) {
-	assertExpectedMovePrompt := func(t *testing.T, buf *bytes.Buffer, player Player) {
-		assert := assert.New(t)
-		t.Helper()
-
-		assert.Equal(fmt.Sprintf(PlayerMovePromptf, player.Info().Token), buf.String())
-	}
-
 	t.Run("returns choice specified in input", func(t *testing.T) {
 		assert := assert.New(t)
 
@@ -37,8 +30,6 @@ func TestIOHumanChoiceProviderIntegration(t *testing.T) {
 			}
 
 			choice := player.ChooseSpace(board)
-
-			assertExpectedMovePrompt(t, mockOutput, player)
 
 			assert.Equal(spaceNum, choice)
 		}

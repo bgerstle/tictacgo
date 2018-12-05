@@ -32,6 +32,10 @@ const PlayerMovePromptf = "Make your move, %c: "
 func (cp ioHumanChoiceProvider) getChoice(p PlayerInfo, board Board) (int, error) {
 	fmt.Fprintf(cp.out, PlayerMovePromptf, p.Token)
 	input, readErr := cp.in.ReadString(byte('\n'))
+
+	// print next output on a new line
+	fmt.Fprintln(cp.out)
+
 	if readErr != nil {
 		fmt.Fprintf(os.Stderr, "Player input encountered error %s", readErr.Error())
 		fmt.Fprintln(cp.out, "Oops, something went wrong! Let's try again...")
@@ -43,12 +47,12 @@ func (cp ioHumanChoiceProvider) getChoice(p PlayerInfo, board Board) (int, error
 		fmt.Fprintln(cp.out, "That doesn't look like a number, please enter one of the available spaces.")
 		return -1, atoiErr
 	}
-	if choice >= board.SpacesLen() {
-		fmt.Fprintf(cp.out, "Please choose one of the available spaces.")
+	if choice < 0 || choice >= board.SpacesLen() {
+		fmt.Fprintln(cp.out, "Please choose one of the available spaces.")
 		return choice, fmt.Errorf("Choice %d out of bounds", choice)
 	}
 	if !board.IsSpaceAvailable(choice) {
-		fmt.Fprintf(cp.out, "Space '%d' is already taken, please enter one of the spaces on the board.", choice)
+		fmt.Fprintln(cp.out, fmt.Sprintf("Space '%d' is already taken, please enter one of the spaces on the board.", choice))
 		return choice, fmt.Errorf("Choice %d already taken", choice)
 	}
 	return choice, nil
