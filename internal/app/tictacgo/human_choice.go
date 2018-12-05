@@ -33,17 +33,15 @@ func (cp ioHumanChoiceProvider) getChoice(p PlayerInfo, board Board) (int, error
 	fmt.Fprintf(cp.out, PlayerMovePromptf, p.Token)
 	input, readErr := cp.in.ReadString(byte('\n'))
 
-	// print next output on a new line
-	fmt.Fprintln(cp.out)
-
 	if readErr != nil {
-		fmt.Fprintf(os.Stderr, "Player input encountered error %s", readErr.Error())
+		// TODO: have some logger that writes to a file...
+		// fmt.Fprintf(os.Stderr, "Player input encountered error %s", readErr.Error())
 		fmt.Fprintln(cp.out, "Oops, something went wrong! Let's try again...")
 		return -1, readErr
 	}
 	choice, atoiErr := strconv.Atoi(strings.TrimSpace(input))
 	if atoiErr != nil {
-		fmt.Fprintf(os.Stderr, "Failed to convert user input to int: %s", atoiErr.Error())
+		// fmt.Fprintf(os.Stderr, "Failed to convert user input to int: %s", atoiErr.Error())
 		fmt.Fprintln(cp.out, "That doesn't look like a number, please enter one of the available spaces.")
 		return -1, atoiErr
 	}
