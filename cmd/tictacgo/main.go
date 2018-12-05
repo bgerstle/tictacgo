@@ -13,7 +13,8 @@ func main() {
 	board := tictacgo.EmptyBoard()
 	fmt.Print(board.String())
 
-	playerX := tictacgo.Player{Token: 'X'}
-	xsMove := playerX.ChooseSpace(os.Stdout, os.Stdin, board)
+	playerX := tictacgo.NewHumanPlayer(tictacgo.PlayerInfo{Token: 'X'})
+	xsMove := playerX.ChooseSpace(board)
+
 	fmt.Printf("X chose space %d", xsMove)
 }
