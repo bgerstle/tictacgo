@@ -1,6 +1,7 @@
 package tictacgo_test
 
 import (
+	"bufio"
 	"io"
 	"os/exec"
 	"strings"
@@ -10,7 +11,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func StartTicTacGo(t *testing.T) (cmd *exec.Cmd, out io.Reader, in io.Writer) {
+type AppTestHarness struct {
+	Cmd *exec.Cmd
+	Out *bufio.Reader
+	Err *bufio.Reader
+	In  io.Writer
+	t   *testing.T
+}
+
+func StartTicTacGo(t *testing.T) AppTestHarness {
 	t.Helper()
 
 	require := require.New(t)
@@ -26,19 +35,21 @@ func StartTicTacGo(t *testing.T) (cmd *exec.Cmd, out io.Reader, in io.Writer) {
 	stdin, stdinErr := ttgCmd.StdinPipe()
 	require.Nil(stdinErr)
 
-	combinedOut := io.MultiReader(stdout, stderr)
-
 	startErr := ttgCmd.Start()
 	require.Nil(startErr)
 
-	return ttgCmd, combinedOut, stdin
+	return AppTestHarness{
+		Cmd: ttgCmd,
+		Out: bufio.NewReader(stdout),
+		Err: bufio.NewReader(stderr),
+		In:  stdin,
+		t:   t,
+	}
 }
 
-func ReadInitialOutput(t *testing.T, out io.Reader) (initialOutputLines []string) {
-	require := require.New(t)
-	t.Helper()
-
-	reader := NewUnbufferedReader(out)
+func (testHarness AppTestHarness) ReadInitialOutput() (initialOutputLines []string) {
+	require := require.New(testHarness.t)
+	testHarness.t.Helper()
 
 	expectedBoardLines := strings.Split(tictacgo.EmptyBoard().String(), "\n")
 	// drop trailing empty line
@@ -46,14 +57,24 @@ func ReadInitialOutput(t *testing.T, out io.Reader) (initialOutputLines []string
 	expectedBoardLinesLen := len(expectedBoardLines)
 	lastExpectedBoardLine := expectedBoardLines[expectedBoardLinesLen-1]
 
-	initialOutputLines, error := reader.ReadLinesUntil(
-		lastExpectedBoardLine,
-		expectedBoardLinesLen+1,
-	)
-	require.Nil(error)
+	initialOutputLines = []string{}
+	for {
+		line, lineErr := testHarness.Out.ReadString('\n')
+
+		line = strings.TrimRight(line, "\n")
+
+		require.Nil(lineErr)
+
+		initialOutputLines = append(initialOutputLines, line)
+		if line == lastExpectedBoardLine {
+			break
+		}
+	}
+
 	require.Len(
 		initialOutputLines,
 		expectedBoardLinesLen+1,
 		"Expected output to contain welcome message plus empty board")
+
 	return
 }

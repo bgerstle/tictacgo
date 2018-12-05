@@ -17,4 +17,5 @@ func main() {
 	xsMove := playerX.ChooseSpace(board)
 
 	fmt.Printf("X chose space %d", xsMove)
+	fmt.Println()
 }

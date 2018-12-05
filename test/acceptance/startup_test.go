@@ -14,13 +14,13 @@ func TestInitialOutput(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
 
-	ttgCmd, combinedOut, _ := StartTicTacGo(t)
+	testHarness := StartTicTacGo(t)
 
 	expectedBoardLines := strings.Split(tictacgo.EmptyBoard().String(), "\n")
 	// drop trailing empty line
 	expectedBoardLines = expectedBoardLines[0 : len(expectedBoardLines)-1]
 
-	combinedOutLines := ReadInitialOutput(t, combinedOut)
+	combinedOutLines := testHarness.ReadInitialOutput()
 
 	assert.Equal(tictacgo.WelcomeMessage, combinedOutLines[0])
 
@@ -28,7 +28,7 @@ func TestInitialOutput(t *testing.T) {
 
 	require.Equal(expectedBoardLines, actualBoardLines)
 
-	killErr := ttgCmd.Process.Kill()
+	killErr := testHarness.Cmd.Process.Kill()
 
 	require.Nil(killErr)
 }
@@ -37,29 +37,31 @@ func TestEnterMove(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
 
-	ttgCmd, combinedOut, in := StartTicTacGo(t)
+	testHarness := StartTicTacGo(t)
 
-	ReadInitialOutput(t, combinedOut)
+	testHarness.ReadInitialOutput()
 
 	expectedPrompt := fmt.Sprintf(tictacgo.PlayerMovePromptf, 'X')
 
-	reader := NewUnbufferedReader(combinedOut)
+	expectedNumBytes := len([]byte(expectedPrompt))
 
-	actualPromptBytes, readError := reader.ReadBytes(len([]byte(expectedPrompt)))
+	promptBuf := make([]byte, expectedNumBytes)
+	readBytes, readError := testHarness.Out.Read(promptBuf)
 
 	require.Nil(readError)
+	require.Equal(expectedNumBytes, readBytes)
 
-	actualPrompt := string(actualPromptBytes)
+	actualPrompt := string(promptBuf)
 
 	assert.Equal(expectedPrompt, actualPrompt)
 
-	fmt.Fprintln(in, "4")
+	fmt.Fprintln(testHarness.In, "4")
 
-	tempResponse, tempResponseErr := reader.ReadLine()
+	tempResponse, tempResponseErr := testHarness.Out.ReadString('\n')
 
 	require.Nil(tempResponseErr)
 
-	assert.Equal("X chose space 4", tempResponse)
+	assert.Equal("X chose space 4\n", tempResponse)
 
-	ttgCmd.Wait()
+	testHarness.Cmd.Wait()
 }
