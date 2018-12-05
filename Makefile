@@ -24,3 +24,7 @@ acceptance-test:
 lint:
 	golint ./...
 .PHONY: lint
+
+debug:
+	dlv debug github.com/bgerstle/tictacgo/cmd/tictacgo
+.PHONY: debug
