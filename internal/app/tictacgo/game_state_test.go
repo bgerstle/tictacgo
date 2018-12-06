@@ -152,33 +152,6 @@ func TestExampleVictoryGameState(t *testing.T) {
 
 	testBoardVictories(
 		t,
-		"examples",
-		[]GameStateTestData{
-			{
-				Board{
-					spaces: []Space{
-						O, X, O,
-						O, O, X,
-						X, X, X,
-					},
-				},
-				x,
-			},
-			{
-				Board{
-					spaces: []Space{
-						O, X, X,
-						X, O, O,
-						X, O, O,
-					},
-				},
-				o,
-			},
-		},
-	)
-
-	testBoardVictories(
-		t,
 		"row",
 		[]GameStateTestData{
 			{
@@ -433,4 +406,21 @@ func TestArbitraryFullBoardGameState(t *testing.T) {
 		return false
 	}, nil)
 	assert.Nil(qcErr)
+}
+
+func TestVictoryWithDifferentRefs(t *testing.T) {
+	runes := []rune{
+		'o', 'x', 'x',
+		'x', 'o', 'x',
+		'o', 'x', 'o',
+	}
+	spaces := make([]Space, len(runes))
+	for i := range spaces {
+		spaces[i] = Space(&runes[i])
+	}
+	board := Board{spaces}
+	state, _ := board.GameState()
+	if state != Victory {
+		t.Error("Expected board filled with all different pointers to have the expected result")
+	}
 }
