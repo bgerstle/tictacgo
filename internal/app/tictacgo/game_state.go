@@ -20,5 +20,10 @@ func (board Board) GameState() (GameState, Space) {
 			return Victory, row[0]
 		}
 	}
+	for _, column := range board.columns() {
+		if isWinningVector(column) {
+			return Victory, column[0]
+		}
+	}
 	return Pending, nil
 }
