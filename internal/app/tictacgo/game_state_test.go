@@ -1,37 +1,79 @@
 package tictacgo
 
 import (
+	"math/rand"
+	"reflect"
 	"testing"
+	"testing/quick"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPendingGameState(t *testing.T) {
-	assert := assert.New(t)
+type ArbitraryPendingBoard struct {
+	Board
+	Player1Token rune
+	Player2Token rune
+}
 
-	pendingBoards := []Board{
-		EmptyBoard(),
-		Board{
-			spaces: []Space{
-				X, O, nil,
-				nil, nil, nil,
-				nil, nil, nil,
-			},
-		},
-	}
+const lastSingleByteUTF8CodePoint = 0x7F
 
-	for _, board := range pendingBoards {
-		state, winner := board.GameState()
-
-		if state != Pending {
-			t.Fatalf(
-				"Expected board to be evaluated as pending, got %s. Board: \n%s",
-				state,
-				board.String(),
-			)
+func (b ArbitraryPendingBoard) Generate(rand *rand.Rand, size int) reflect.Value {
+	b.Board = EmptyBoard()
+	b.Player1Token = rune(rand.Int31n(lastSingleByteUTF8CodePoint))
+	b.Player2Token = rune(rand.Int31n(lastSingleByteUTF8CodePoint))
+	numMoves := rand.Int31n(5)
+	shuffledSpaces := rand.Perm(b.Board.SpacesLen())
+	for i, space := range shuffledSpaces[:numMoves+1] {
+		var currentToken rune
+		if i%2 == 0 {
+			currentToken = b.Player1Token
+		} else {
+			currentToken = b.Player2Token
 		}
-		assert.Nil(winner)
+		b.Board = b.Board.AssignSpace(space, &currentToken)
 	}
+	return reflect.ValueOf(b)
+}
+
+func TestPendingGameState(t *testing.T) {
+
+	t.Run("example pending board", func(t *testing.T) {
+		assert := assert.New(t)
+
+		pendingBoards := []Board{
+			EmptyBoard(),
+			Board{
+				spaces: []Space{
+					X, O, nil,
+					nil, nil, nil,
+					nil, nil, nil,
+				},
+			},
+		}
+
+		for _, board := range pendingBoards {
+			state, winner := board.GameState()
+
+			if state != Pending {
+				t.Fatalf(
+					"Expected board to be evaluated as pending, got %s. Board: \n%s",
+					state,
+					board.String(),
+				)
+			}
+			assert.Nil(winner)
+		}
+	})
+
+	t.Run("boards with 4 or less moves", func(t *testing.T) {
+		assert := assert.New(t)
+
+		qcErr := quick.Check(func(arbitraryPendingBoard ArbitraryPendingBoard) bool {
+			state, winner := arbitraryPendingBoard.Board.GameState()
+			return state == Pending && winner == nil
+		}, nil)
+		assert.Nil(qcErr)
+	})
 }
 
 type GameStateTestData struct {
