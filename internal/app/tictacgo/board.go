@@ -45,16 +45,8 @@ func (b Board) SpacesLen() int {
 	return len(b.spaces)
 }
 
-func (b Board) assertInBounds(index int) {
-	maxIndex := b.SpacesLen() - 1
-	if index < 0 || index > maxIndex {
-		panic(fmt.Sprintf("Space index must be in bounds (0 < index < %d), got %d", maxIndex, index))
-	}
-}
-
 // IsSpaceAvailable returns whether or not the space at the specified index has a token.
 func (b Board) IsSpaceAvailable(index int) bool {
-	b.assertInBounds(index)
 	return b.spaces[index] == nil
 }
 
@@ -71,36 +63,62 @@ func (b Board) AssignSpace(index int, value Space) Board {
 	return newBoard
 }
 
+func (b Board) spaceVectorsForIndexVectors(indexVectors [][]int) [][]Space {
+	spaceVectors := [][]Space{}
+	for _, indexes := range indexVectors {
+		spaceSet := []Space{}
+		for _, index := range indexes {
+			spaceSet = append(spaceSet, b.spaces[index])
+		}
+		spaceVectors = append(spaceVectors, spaceSet)
+	}
+	return spaceVectors
+}
+
 // Get the spaces on the board partitioned into rows
 func (b Board) rows() [][]Space {
-	rows := make([][]Space, 3)
-	for i, space := range b.spaces {
+	return b.spaceVectorsForIndexVectors(b.rowIndexVectors())
+}
+
+func (b Board) rowIndexVectors() [][]int {
+	rowIndexVectors := make([][]int, 3)
+	for i := range b.spaces {
 		rowNumber := i / 3
-		row := rows[rowNumber]
-		rows[rowNumber] = append(row, space)
+		row := rowIndexVectors[rowNumber]
+		rowIndexVectors[rowNumber] = append(row, i)
 	}
-	return rows
+	return rowIndexVectors
+
 }
 
 func (b Board) columns() [][]Space {
-	columns := make([][]Space, 3)
-	for i, space := range b.spaces {
+	return b.spaceVectorsForIndexVectors(b.columnIndexVectors())
+}
+
+func (b Board) columnIndexVectors() [][]int {
+	columnIndexVectors := make([][]int, 3)
+	for i := range b.spaces {
 		columnNumber := i % 3
-		column := columns[columnNumber]
-		columns[columnNumber] = append(column, space)
+		column := columnIndexVectors[columnNumber]
+		columnIndexVectors[columnNumber] = append(column, i)
 	}
-	return columns
+	return columnIndexVectors
 }
 
 func (b Board) diagonals() [][]Space {
-	return [][]Space{
-		[]Space{
-			b.spaces[0], b.spaces[4], b.spaces[8],
+	return b.spaceVectorsForIndexVectors(b.diagonalIndexVectors())
+}
+
+func (b Board) diagonalIndexVectors() [][]int {
+	return [][]int{
+		[]int{
+			0, 4, 8,
 		},
-		[]Space{
-			b.spaces[2], b.spaces[4], b.spaces[6],
+		[]int{
+			2, 4, 6,
 		},
 	}
+
 }
 
 const rowSeparator = "===+===+==="
