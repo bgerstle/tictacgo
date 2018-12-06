@@ -89,9 +89,10 @@ func TestPlayChoosesMovesThenEnds(t *testing.T) {
 	}
 
 	g := Game{
-		Player1: &mockPlayer1,
-		Player2: &mockPlayer2,
-		Board:   EmptyBoard(),
+		Player1:  &mockPlayer1,
+		Player2:  &mockPlayer2,
+		Board:    EmptyBoard(),
+		Reporter: &mockReporter,
 	}
 
 	mockReporter.On("ReportGameStart", g.Board).Return().Once()

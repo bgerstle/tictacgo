@@ -2,10 +2,17 @@ package tictacgo
 
 import "fmt"
 
+type GameReporter interface {
+	ReportGameStart(b Board)
+	ReportGameProgress(b Board, lastPlayerToken rune, lastPlayerSpace int)
+	ReportGameEnd(finalBoard Board, state GameState, winner Space)
+}
+
 type Game struct {
-	Player1 Player
-	Player2 Player
-	Board   Board
+	Player1  Player
+	Player2  Player
+	Board    Board
+	Reporter GameReporter
 }
 
 func (g Game) PlayerForToken(t rune) *Player {
@@ -38,6 +45,11 @@ func (g *Game) Play() (GameState, *Player) {
 		winningSpace Space
 	)
 	for i := range g.Board.AvailableSpaces() {
+		// Board still has moves—start the game!
+		if i == 0 && g.Reporter != nil {
+			g.Reporter.ReportGameStart(g.Board)
+		}
+
 		// get current player for this turn
 		var currentPlayer *Player
 		if i%2 == 0 {
@@ -53,6 +65,11 @@ func (g *Game) Play() (GameState, *Player) {
 		// assign it on the board
 		newBoard := g.Board.AssignSpace(space, &currentToken)
 
+		// report progress
+		if g.Reporter != nil {
+			g.Reporter.ReportGameProgress(newBoard, currentToken, space)
+		}
+
 		// apply new board to the game
 		g.Board = newBoard
 
@@ -61,6 +78,10 @@ func (g *Game) Play() (GameState, *Player) {
 		if state != Pending {
 			break
 		}
+	}
+
+	if g.Reporter != nil {
+		g.Reporter.ReportGameEnd(g.Board, state, winningSpace)
 	}
 
 	var winningPlayer *Player
