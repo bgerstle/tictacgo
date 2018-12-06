@@ -162,3 +162,29 @@ func TestVictoryGameState(t *testing.T) {
 		},
 	)
 }
+
+func TestTieGameState(t *testing.T) {
+	assert := assert.New(t)
+
+	tiedBoards := []Board{
+		Board{
+			spaces: []Space{
+				X, O, X,
+				X, O, O,
+				O, X, X,
+			},
+		},
+	}
+
+	for _, board := range tiedBoards {
+		state, winner := board.GameState()
+		if state != Tie {
+			t.Fatalf(
+				"Expected board to be evaluated as tie, got %s. Board: \n%s",
+				state,
+				board.String(),
+			)
+		}
+		assert.Nil(winner)
+	}
+}
