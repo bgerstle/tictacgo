@@ -26,7 +26,7 @@ Accept user input (no game-end state yet).
 ## v0.3.0
 Game states.
 
-- [ ] Derive game state from occupied spaces on a board
+- [x] Derive game state from occupied spaces on a board
 - [ ] Start a game with 2 players
 - [ ] When a move ends the game, print the status & exit
 
