@@ -92,6 +92,10 @@ func (b Board) columns() [][]Space {
 	return columns
 }
 
+func (b Board) diagonals() [][]Space {
+	return make([][]Space, 2)
+}
+
 const rowSeparator = "===+===+==="
 const spaceSeparator = "|"
 

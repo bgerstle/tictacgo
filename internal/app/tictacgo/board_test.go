@@ -55,6 +55,14 @@ func TestBoardVectors(t *testing.T) {
 		assert.Equal([]Space{X, O, nil}, columns[1])
 		assert.Equal([]Space{X, nil, O}, columns[2])
 	})
+
+	t.Run("Returns expected diagonals", func(t *testing.T) {
+		assert := assert.New(t)
+
+		diagonals := board.diagonals()
+		assert.Equal([]Space{nil, O, O}, diagonals[0])
+		assert.Equal([]Space{X, O, X}, diagonals[1])
+	})
 }
 
 func TestAssignSpace(t *testing.T) {
