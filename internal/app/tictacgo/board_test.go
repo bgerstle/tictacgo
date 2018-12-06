@@ -27,6 +27,20 @@ func TestBoard(t *testing.T) {
 
 		assert.Equal(availableSpaces, board.AvailableSpaces())
 	})
+
+	t.Run("Full board has no available spaces", func(t *testing.T) {
+		assert := assert.New(t)
+
+		fullBoard := Board{
+			spaces: []Space{
+				X, O, X,
+				X, X, O,
+				O, O, X,
+			},
+		}
+
+		assert.Len(fullBoard.AvailableSpaces(), 0)
+	})
 }
 
 func TestBoardVectors(t *testing.T) {

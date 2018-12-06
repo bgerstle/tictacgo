@@ -30,5 +30,8 @@ func (board Board) GameState() (GameState, Space) {
 			return Victory, diagonal[0]
 		}
 	}
+	if len(board.AvailableSpaces()) == 0 {
+		return Tie, nil
+	}
 	return Pending, nil
 }
