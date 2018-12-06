@@ -135,4 +135,30 @@ func TestVictoryGameState(t *testing.T) {
 		},
 	)
 
+	testBoardVictories(
+		t,
+		"diagonal",
+		[]GameStateTestData{
+			{
+				Board{
+					spaces: []Space{
+						X, O, O,
+						nil, X, nil,
+						nil, nil, X,
+					},
+				},
+				x,
+			},
+			{
+				Board{
+					spaces: []Space{
+						nil, nil, O,
+						X, O, X,
+						O, nil, nil,
+					},
+				},
+				o,
+			},
+		},
+	)
 }
