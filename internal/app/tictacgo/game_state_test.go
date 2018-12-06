@@ -55,9 +55,9 @@ type ArbitraryBoard struct {
 
 func (ab ArbitraryBoard) Generate(rand *rand.Rand, size int) reflect.Value {
 	ab.Board = EmptyBoard()
-	atp := ArbitraryTokenPair{}.Generate(rand, size).Interface().(ArbitraryTokenPair)
-	ab.Player1Token = rune(atp[0])
-	ab.Player2Token = rune(atp[1])
+	afb := ArbitraryTokenPair{}.Generate(rand, size).Interface().(ArbitraryTokenPair)
+	ab.Player1Token = rune(afb[0])
+	ab.Player2Token = rune(afb[1])
 	if ab.Player1Token == ab.Player2Token {
 		panic("Winning and losing tokens must not be the same")
 	}
@@ -132,7 +132,7 @@ func TestExampleVictoryGameState(t *testing.T) {
 	testBoardVictories := func(t *testing.T, name string, testData []GameStateTestData) {
 		t.Helper()
 
-		t.Run("test victory by "+name, func(t *testing.T) {
+		t.Run(fmt.Sprintf(name), func(t *testing.T) {
 			assert := assert.New(t)
 			for _, tdata := range testData {
 				state, winner := tdata.Board.GameState()
@@ -149,6 +149,33 @@ func TestExampleVictoryGameState(t *testing.T) {
 			}
 		})
 	}
+
+	testBoardVictories(
+		t,
+		"examples",
+		[]GameStateTestData{
+			{
+				Board{
+					spaces: []Space{
+						O, X, O,
+						O, O, X,
+						X, X, X,
+					},
+				},
+				x,
+			},
+			{
+				Board{
+					spaces: []Space{
+						O, X, X,
+						X, O, O,
+						X, O, O,
+					},
+				},
+				o,
+			},
+		},
+	)
 
 	testBoardVictories(
 		t,
@@ -307,15 +334,37 @@ func TestArbitraryVictoryGameState(t *testing.T) {
 
 	qcErr := quick.Check(func(avb ArbitraryVictoryBoard) bool {
 		state, winner := avb.GameState()
-		fmt.Printf("state %s, winner %#v, board: \n%s", state, spaceToString(winner, "null"), avb.Board.String())
+		// fmt.Printf("state %s, winner %#v, board: \n%s", state, spaceToString(winner, "null"), avb.Board.String())
 		return state == Victory && winner != nil && *winner == avb.WinningToken
 	}, nil)
 	assert.Nil(qcErr)
 }
 
-func TestTieGameState(t *testing.T) {
-	assert := assert.New(t)
+type ArbitraryFullBoard struct {
+	ArbitraryBoard
+}
 
+func (afb ArbitraryFullBoard) Generate(rand *rand.Rand, size int) reflect.Value {
+	afb.ArbitraryBoard = afb.ArbitraryBoard.Generate(rand, size).Interface().(ArbitraryBoard)
+
+	shuffledSpaces := rand.Perm(afb.Board.SpacesLen())
+
+	for i, space := range shuffledSpaces {
+		var currentToken rune
+		if i%2 == 0 {
+			currentToken = afb.Player1Token
+		} else {
+			currentToken = afb.Player2Token
+		}
+		afb.Board = afb.Board.AssignSpace(space, &currentToken)
+	}
+	if len(afb.Board.AvailableSpaces()) > 0 {
+		panic("Board should have been filled")
+	}
+	return reflect.ValueOf(afb)
+}
+
+func TestTieGameState(t *testing.T) {
 	tiedBoards := []Board{
 		Board{
 			spaces: []Space{
@@ -324,17 +373,64 @@ func TestTieGameState(t *testing.T) {
 				O, X, X,
 			},
 		},
+		Board{
+			spaces: []Space{
+				X, O, X,
+				X, O, X,
+				O, X, O,
+			},
+		},
+		Board{
+			spaces: []Space{
+				O, X, X,
+				X, O, O,
+				X, O, X,
+			},
+		},
 	}
 
-	for _, board := range tiedBoards {
-		state, winner := board.GameState()
-		if state != Tie {
-			t.Fatalf(
-				"Expected board to be evaluated as tie, got %s. Board: \n%s",
-				state,
-				board.String(),
-			)
-		}
-		assert.Nil(winner)
+	for i, board := range tiedBoards {
+		t.Run(fmt.Sprintf("example %d", i), func(t *testing.T) {
+			assert := assert.New(t)
+			state, winner := board.GameState()
+			if state != Tie {
+				t.Fatalf(
+					"Expected board to be evaluated as tie, got %s. Board: \n%s",
+					state,
+					board.String(),
+				)
+			}
+			assert.Nil(winner)
+		})
 	}
+}
+
+func TestArbitraryFullBoardGameState(t *testing.T) {
+	assert := assert.New(t)
+
+	qcErr := quick.Check(func(afb ArbitraryFullBoard) bool {
+		// fmt.Println(fmt.Sprintf("checking state of board : \n%s", afb.Board.String()))
+		state, winner := afb.GameState()
+		// fmt.Println(fmt.Sprintf("and the result was: %s, %s", state, spaceToString(winner, "null")))
+		switch state {
+		case Tie:
+			if winner == nil {
+				// Ties don't have a winner
+				return true
+			}
+			return false
+		case Victory:
+			if winner != nil {
+				// If the board is full and it's not a tie, must be a victory (with a winner)
+				return true
+			}
+			return false
+		case Pending:
+		default:
+			break
+		}
+		// Full boards should never be pending
+		return false
+	}, nil)
+	assert.Nil(qcErr)
 }

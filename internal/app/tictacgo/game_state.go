@@ -9,9 +9,11 @@ const (
 )
 
 func isWinningVector(spaces []Space) bool {
-	return spaces[0] != Space(nil) &&
-		spaces[0] == spaces[1] &&
-		spaces[1] == spaces[2]
+	return spaces[0] != nil &&
+		spaces[1] != nil &&
+		spaces[2] != nil &&
+		*spaces[0] == *spaces[1] &&
+		*spaces[1] == *spaces[2]
 }
 
 func (board Board) GameState() (GameState, Space) {
