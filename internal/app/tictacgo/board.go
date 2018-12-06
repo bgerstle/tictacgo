@@ -61,7 +61,10 @@ func (b Board) IsSpaceAvailable(index int) bool {
 // AssignSpace returns a new board with the chosen space assigned.
 // A new board is returned in order to keep boards (publicly) immutable.
 func (b Board) AssignSpace(index int, value Space) Board {
-	b.assertInBounds(index)
+	if !b.IsSpaceAvailable(index) {
+		panic(fmt.Sprintf("Space %d is already taken", index))
+	}
+
 	newBoard := EmptyBoard()
 	copy(newBoard.spaces, b.spaces)
 	newBoard.spaces[index] = value
