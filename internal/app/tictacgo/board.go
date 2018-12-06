@@ -82,6 +82,16 @@ func (b Board) rows() [][]Space {
 	return rows
 }
 
+func (b Board) columns() [][]Space {
+	columns := make([][]Space, 3)
+	for i, space := range b.spaces {
+		columnNumber := i % 3
+		column := columns[columnNumber]
+		columns[columnNumber] = append(column, space)
+	}
+	return columns
+}
+
 const rowSeparator = "===+===+==="
 const spaceSeparator = "|"
 

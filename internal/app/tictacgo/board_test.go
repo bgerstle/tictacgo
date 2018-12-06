@@ -27,29 +27,43 @@ func TestBoard(t *testing.T) {
 
 		assert.Equal(availableSpaces, board.AvailableSpaces())
 	})
+}
+
+func TestBoardVectors(t *testing.T) {
+	board := Board{
+		spaces: []Space{
+			nil, X, X,
+			O, O, nil,
+			X, nil, O,
+		},
+	}
 
 	t.Run("Returns expected rows", func(t *testing.T) {
 		assert := assert.New(t)
 
-		board := Board{
-			spaces: []Space{
-				nil, X, X,
-				O, O, nil,
-				X, nil, O,
-			},
-		}
 		rows := board.rows()
 		assert.Equal([]Space{nil, X, X}, rows[0])
 		assert.Equal([]Space{O, O, nil}, rows[1])
 		assert.Equal([]Space{X, nil, O}, rows[2])
 	})
 
-	t.Run("Returns all but the assigned spaces", func(t *testing.T) {
-		_testTakingAvailableSpace(t, EmptyBoard())
+	t.Run("Returns expected columns", func(t *testing.T) {
+		assert := assert.New(t)
+
+		columns := board.columns()
+		assert.Equal([]Space{nil, O, X}, columns[0])
+		assert.Equal([]Space{X, O, nil}, columns[1])
+		assert.Equal([]Space{X, nil, O}, columns[2])
 	})
 }
 
-func _testTakingAvailableSpace(t *testing.T, board Board) {
+func TestAssignSpace(t *testing.T) {
+	t.Run("Returns all but the assigned spaces", func(t *testing.T) {
+		testTakingAvailableSpace(t, EmptyBoard())
+	})
+}
+
+func testTakingAvailableSpace(t *testing.T, board Board) {
 	t.Helper()
 	assert := assert.New(t)
 
@@ -65,7 +79,7 @@ func _testTakingAvailableSpace(t *testing.T, board Board) {
 	assert.False(newBoard.IsSpaceAvailable(spaceToAssign))
 
 	if len(newBoard.AvailableSpaces()) != 0 {
-		_testTakingAvailableSpace(t, newBoard)
+		testTakingAvailableSpace(t, newBoard)
 	}
 }
 
