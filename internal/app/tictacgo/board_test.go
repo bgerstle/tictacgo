@@ -1,8 +1,12 @@
 package tictacgo
 
 import (
+	"fmt"
+	"math/rand"
+	"reflect"
 	"strings"
 	"testing"
+	"testing/quick"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -12,7 +16,7 @@ var o = 'O'
 var X = Space(&x)
 var O = Space(&o)
 
-func TestBoard(t *testing.T) {
+func TestBoardSpaces(t *testing.T) {
 	t.Run("Initializes as empty, with all spaces available", func(t *testing.T) {
 		assert := assert.New(t)
 
@@ -41,6 +45,39 @@ func TestBoard(t *testing.T) {
 
 		assert.Len(fullBoard.AvailableSpaces(), 0)
 	})
+
+	t.Run("Returns number of spaces for each token", func(t *testing.T) {
+		assert := assert.New(t)
+
+		randomSpaceIndexes := func(values []reflect.Value, rand *rand.Rand) {
+			spaceIndexes := rand.Perm(9)[:rand.Intn(9)]
+			values[0] = reflect.ValueOf(spaceIndexes)
+		}
+
+		qcErr := quick.Check(func(spaceIndexes []int) bool {
+			board := EmptyBoard()
+			xsSpaceIndexes := spaceIndexes[:len(spaceIndexes)/2]
+			osSpaceIndexes := spaceIndexes[len(spaceIndexes)/2:]
+			for _, index := range xsSpaceIndexes {
+				board = board.AssignSpace(index, X)
+			}
+			for _, index := range osSpaceIndexes {
+				board = board.AssignSpace(index, O)
+			}
+
+			return assert.ElementsMatch(xsSpaceIndexes, board.SpacesAssignedTo(x)) &&
+				assert.ElementsMatch(osSpaceIndexes, board.SpacesAssignedTo(o))
+		}, &quick.Config{Values: randomSpaceIndexes})
+
+		assert.NoError(qcErr)
+	})
+}
+
+func ExampleSpacesForToken() {
+	board := EmptyBoard().AssignSpace(0, X).AssignSpace(1, O).AssignSpace(2, X)
+	xsSpaces := board.SpacesAssignedTo(x)
+	fmt.Printf("X has %d spaces: %d and %d", len(xsSpaces), xsSpaces[0], xsSpaces[1])
+	// Output: X has 2 spaces: 0 and 2
 }
 
 func TestBoardVectors(t *testing.T) {

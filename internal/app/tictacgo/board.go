@@ -29,6 +29,16 @@ func EmptyBoard() Board {
 	return b
 }
 
+func (b Board) SpacesAssignedTo(t rune) []int {
+	tSpaces := []int{}
+	for i, space := range b.spaces {
+		if space != nil && *space == t {
+			tSpaces = append(tSpaces, i)
+		}
+	}
+	return tSpaces
+}
+
 // AvailableSpaces returns a list of indexes for empty spaces on the board.
 func (b Board) AvailableSpaces() []int {
 	availableSpaces := []int{}
