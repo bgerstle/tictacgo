@@ -22,6 +22,22 @@ func (mp MockPlayer) ChooseSpace(b Board) int {
 	return args.Int(0)
 }
 
+type MockGameReporter struct {
+	mock.Mock
+}
+
+func (mgr MockGameReporter) ReportGameStart(b Board) {
+	mgr.Called(b)
+}
+
+func (mgr MockGameReporter) ReportGameProgress(b Board, lastPlayerToken rune, lastPlayerSpace int) {
+	mgr.Called(b, lastPlayerToken, lastPlayerSpace)
+}
+
+func (mgr MockGameReporter) ReportGameEnd(finalBoard Board, state GameState, winner Space) {
+	mgr.Called(finalBoard, state, winner)
+}
+
 func TestGame_PlayerForToken(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
@@ -62,6 +78,7 @@ func TestPlayChoosesMovesThenEnds(t *testing.T) {
 		mock.Mock{},
 		PlayerInfo{Token: o},
 	}
+	mockReporter := MockGameReporter{}
 
 	finalBoard := Board{
 		spaces: []Space{
@@ -71,24 +88,41 @@ func TestPlayChoosesMovesThenEnds(t *testing.T) {
 		},
 	}
 
-	for i, space := range finalBoard.spaces {
-		var mockForToken *MockPlayer
-		if space == nil {
-			continue
-		}
-		if *space == mockPlayer1.Token {
-			mockForToken = &mockPlayer1
-		} else {
-			mockForToken = &mockPlayer2
-		}
-		mockForToken.On("ChooseSpace", mock.AnythingOfType("Board")).Return(i).Once()
-	}
-
 	g := Game{
 		Player1: &mockPlayer1,
 		Player2: &mockPlayer2,
 		Board:   EmptyBoard(),
 	}
+
+	mockReporter.On("ReportGameStart", g.Board).Return().Once()
+
+	expectedBoard := g.Board
+	expectedP1Moves := finalBoard.SpacesAssignedTo(mockPlayer1.Token)
+	p1WriteIndex := 0
+	expectedP2Moves := finalBoard.SpacesAssignedTo(mockPlayer2.Token)
+	p2WriteIndex := 0
+	for i := 0; i < len(expectedP1Moves)+len(expectedP2Moves); i++ {
+		var (
+			currentPlayer *MockPlayer
+			space         int
+		)
+		if i%2 == 0 {
+			currentPlayer = &mockPlayer1
+			space = expectedP1Moves[p1WriteIndex]
+			p1WriteIndex++
+		} else {
+			currentPlayer = &mockPlayer2
+			space = expectedP2Moves[p2WriteIndex]
+			p2WriteIndex++
+		}
+
+		token := (*currentPlayer).Token
+		(*currentPlayer).On("ChooseSpace", expectedBoard).Return(space).Once()
+		expectedBoard = expectedBoard.AssignSpace(space, &token)
+		mockReporter.On("ReportGameProgress", expectedBoard, token, space).Return().Once()
+	}
+
+	mockReporter.On("ReportGameEnd", expectedBoard, Victory, X)
 
 	state, winner := g.Play()
 
@@ -99,4 +133,5 @@ func TestPlayChoosesMovesThenEnds(t *testing.T) {
 	require.NotNil(winner)
 	assert.Equal(&g.Player1, winner)
 	assert.Equal(finalBoard, g.Board)
+	mockReporter.AssertExpectations(t)
 }
