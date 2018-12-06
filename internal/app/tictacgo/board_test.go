@@ -73,11 +73,15 @@ func TestBoardSpaces(t *testing.T) {
 	})
 }
 
-func ExampleSpacesForToken() {
+func ExampleBoard_SpacesAssignedTo() {
 	board := EmptyBoard().AssignSpace(0, X).AssignSpace(1, O).AssignSpace(2, X)
 	xsSpaces := board.SpacesAssignedTo(x)
-	fmt.Printf("X has %d spaces: %d and %d", len(xsSpaces), xsSpaces[0], xsSpaces[1])
-	// Output: X has 2 spaces: 0 and 2
+	osSpaces := board.SpacesAssignedTo(o)
+	fmt.Println(fmt.Sprintf("X has %d spaces: %d and %d", len(xsSpaces), xsSpaces[0], xsSpaces[1]))
+	fmt.Println(fmt.Sprintf("O has %d space: %d", len(osSpaces), osSpaces[0]))
+	// Output:
+	// X has 2 spaces: 0 and 2
+	// O has 1 space: 1
 }
 
 func TestBoardVectors(t *testing.T) {
