@@ -40,60 +40,99 @@ type GameStateTestData struct {
 }
 
 func TestVictoryGameState(t *testing.T) {
-	testBoardVictories := func(t *testing.T, testData []GameStateTestData) {
+	testBoardVictories := func(t *testing.T, name string, testData []GameStateTestData) {
 		t.Helper()
 
-		assert := assert.New(t)
+		t.Run("test victory by "+name, func(t *testing.T) {
+			assert := assert.New(t)
+			for _, tdata := range testData {
+				state, winner := tdata.Board.GameState()
 
-		for _, tdata := range testData {
-			state, winner := tdata.Board.GameState()
-
-			if state != Victory {
-				t.Fatalf(
-					"Expected board to be evaluated as victory, got %s. Board: \n%s",
-					state,
-					tdata.Board.String(),
-				)
+				if state != Victory {
+					t.Errorf(
+						"Expected board to be evaluated as victory, got %s. Board: \n%s",
+						state,
+						tdata.Board.String(),
+					)
+				} else {
+					assert.Equal(tdata.rune, *winner)
+				}
 			}
-			assert.Equal(tdata.rune, *winner)
-		}
+		})
 	}
 
-	t.Run("victory by row", func(t *testing.T) {
-		testBoardVictories(
-			t,
-			[]GameStateTestData{
-				{
-					Board{
-						spaces: []Space{
-							X, X, X,
-							nil, O, O,
-							nil, nil, nil,
-						},
+	testBoardVictories(
+		t,
+		"row",
+		[]GameStateTestData{
+			{
+				Board{
+					spaces: []Space{
+						X, X, X,
+						nil, O, O,
+						nil, nil, nil,
 					},
-					x,
 				},
-				{
-					Board{
-						spaces: []Space{
-							X, nil, nil,
-							O, O, O,
-							X, nil, nil,
-						},
-					},
-					o,
-				},
-				{
-					Board{
-						spaces: []Space{
-							nil, nil, nil,
-							O, nil, O,
-							X, X, X,
-						},
-					},
-					x,
-				},
+				x,
 			},
-		)
-	})
+			{
+				Board{
+					spaces: []Space{
+						X, nil, nil,
+						O, O, O,
+						X, nil, nil,
+					},
+				},
+				o,
+			},
+			{
+				Board{
+					spaces: []Space{
+						nil, nil, nil,
+						O, nil, O,
+						X, X, X,
+					},
+				},
+				x,
+			},
+		},
+	)
+
+	testBoardVictories(
+		t,
+		"column",
+		[]GameStateTestData{
+			{
+				Board{
+					spaces: []Space{
+						X, O, O,
+						X, nil, nil,
+						X, nil, nil,
+					},
+				},
+				x,
+			},
+			{
+				Board{
+					spaces: []Space{
+						nil, O, nil,
+						X, O, X,
+						nil, O, nil,
+					},
+				},
+				o,
+			},
+			{
+				Board{
+					spaces: []Space{
+						nil, nil, X,
+						nil, nil, X,
+						O, O, X,
+					},
+				},
+				x,
+			},
+		},
+	)
+
 }
