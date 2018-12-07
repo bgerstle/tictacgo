@@ -8,11 +8,11 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type MockChoiceProvider struct {
+type MockchoiceProvider struct {
 	mock.Mock
 }
 
-func (mock MockChoiceProvider) getChoice(p PlayerInfo, b Board) (int, error) {
+func (mock MockchoiceProvider) getChoice(p PlayerInfo, b Board) (int, error) {
 	args := mock.Called(p, b)
 	return args.Int(0), args.Error(1)
 }
@@ -24,11 +24,11 @@ func TestHumanPlayer(t *testing.T) {
 		board := EmptyBoard()
 
 		for expectedChoice := range board.spaces {
-			mockCP := MockChoiceProvider{}
+			mockCP := MockchoiceProvider{}
 
 			HumanPlayer := HumanPlayer{
 				PlayerInfo:     PlayerInfo{Token: 'X'},
-				ChoiceProvider: &mockCP,
+				choiceProvider: &mockCP,
 			}
 
 			mockCP.On("getChoice", HumanPlayer.PlayerInfo, board).Return(expectedChoice, nil)
@@ -44,11 +44,11 @@ func TestHumanPlayer(t *testing.T) {
 
 		board := EmptyBoard()
 
-		mockCP := MockChoiceProvider{}
+		mockCP := MockchoiceProvider{}
 
 		HumanPlayer := HumanPlayer{
 			PlayerInfo:     PlayerInfo{Token: 'X'},
-			ChoiceProvider: &mockCP,
+			choiceProvider: &mockCP,
 		}
 
 		expectedChoice := 1

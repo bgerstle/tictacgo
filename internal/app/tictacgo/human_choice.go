@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-type IOHumanChoiceProvider struct {
+type ioHumanChoiceProvider struct {
 	// Must use the same buffered reader to avoid losing input
 	// b/t calls to getChoice
 	In  *bufio.Reader
@@ -19,7 +19,7 @@ type IOHumanChoiceProvider struct {
 const PlayerMovePromptf = "Make your move, %c: "
 
 // Internal type used for getting choices from stdin/stdout, and writing error messages
-func (cp IOHumanChoiceProvider) getChoice(p PlayerInfo, board Board) (int, error) {
+func (cp ioHumanChoiceProvider) getChoice(p PlayerInfo, board Board) (int, error) {
 	fmt.Fprintf(cp.Out, PlayerMovePromptf, p.Token)
 	input, readErr := cp.In.ReadString(byte('\n'))
 

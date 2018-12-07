@@ -12,13 +12,7 @@ func main() {
 
 	bufStdin := bufio.NewReader(os.Stdin)
 
-	player1 := tictacgo.HumanPlayer{
-		PlayerInfo: tictacgo.PlayerInfo{Token: 'X'},
-		ChoiceProvider: tictacgo.IOHumanChoiceProvider{
-			In:  bufStdin,
-			Out: os.Stdout,
-		},
-	}
+	player1 := tictacgo.NewHumanPlayer('X', bufStdin)
 
 	player2 := tictacgo.BotPlayer{
 		PlayerInfo: tictacgo.PlayerInfo{Token: 'O'},

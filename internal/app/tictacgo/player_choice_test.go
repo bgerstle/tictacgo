@@ -29,33 +29,33 @@ func assertExpectedMovePrompt(t *testing.T, reader *bufio.Reader, player PlayerI
 	})
 }
 
-func TestIOHumanChoiceProvider(t *testing.T) {
-	t.Run("valid inputs return the corresponding int", func(t *testing.T) {
-		assert := assert.New(t)
+func TestHumanChoiceProviderValidInputs(t *testing.T) {
+	assert := assert.New(t)
 
-		board := EmptyBoard()
+	board := EmptyBoard()
 
-		for spaceNum := range board.AvailableSpaces() {
-			mockOutput := &bytes.Buffer{}
-			mockInput := bytes.NewBufferString(fmt.Sprintf("%d\n", spaceNum))
+	for spaceNum := range board.AvailableSpaces() {
+		mockOutput := &bytes.Buffer{}
+		mockInput := bytes.NewBufferString(fmt.Sprintf("%d\n", spaceNum))
 
-			ChoiceProvider := IOHumanChoiceProvider{
-				In:  bufio.NewReader(mockInput),
-				Out: mockOutput,
-			}
-
-			playerInfo := PlayerInfo{Token: 'X'}
-
-			choice, err := ChoiceProvider.getChoice(playerInfo, board)
-
-			assert.Nil(err)
-
-			assertExpectedMovePrompt(t, bufio.NewReader(mockOutput), playerInfo)
-
-			assert.Equal(spaceNum, choice)
+		choiceProvider := ioHumanChoiceProvider{
+			In:  bufio.NewReader(mockInput),
+			Out: mockOutput,
 		}
-	})
 
+		playerInfo := PlayerInfo{Token: 'X'}
+
+		choice, err := choiceProvider.getChoice(playerInfo, board)
+
+		assert.Nil(err)
+
+		assertExpectedMovePrompt(t, bufio.NewReader(mockOutput), playerInfo)
+
+		assert.Equal(spaceNum, choice)
+	}
+}
+
+func TestHumanChoiceProviderInvalidInputs(t *testing.T) {
 	invalidInputExamples := []string{
 		"",
 		"a\n",
@@ -63,8 +63,8 @@ func TestIOHumanChoiceProvider(t *testing.T) {
 		"10000\n",
 		"-1\n",
 	}
-	for _, invalidInput := range invalidInputExamples {
-		t.Run("invalid inputs return an error", func(t *testing.T) {
+	for i, invalidInput := range invalidInputExamples {
+		t.Run(fmt.Sprintf("invalid input %d", i), func(t *testing.T) {
 			assert := assert.New(t)
 
 			board := EmptyBoard()
@@ -74,14 +74,14 @@ func TestIOHumanChoiceProvider(t *testing.T) {
 
 			fmt.Fprint(&mockInput, invalidInput)
 
-			ChoiceProvider := IOHumanChoiceProvider{
+			choiceProvider := ioHumanChoiceProvider{
 				In:  bufio.NewReader(&mockInput),
 				Out: mockOutput,
 			}
 
 			playerInfo := PlayerInfo{Token: 'X'}
 
-			_, err := ChoiceProvider.getChoice(playerInfo, board)
+			_, err := choiceProvider.getChoice(playerInfo, board)
 
 			assert.NotNil(err)
 
@@ -109,12 +109,12 @@ func TestIOHumanChoiceProvider(t *testing.T) {
 		mockOutput := &bytes.Buffer{}
 		mockInput := bytes.NewBufferString("0\n")
 
-		ChoiceProvider := IOHumanChoiceProvider{
+		choiceProvider := ioHumanChoiceProvider{
 			In:  bufio.NewReader(mockInput),
 			Out: mockOutput,
 		}
 
-		_, err := ChoiceProvider.getChoice(playerInfo, board)
+		_, err := choiceProvider.getChoice(playerInfo, board)
 
 		assert.NotNil(err)
 
