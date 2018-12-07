@@ -24,7 +24,7 @@ func TestExamplePvPGame(t *testing.T) {
 			O, nil, nil,
 			O, nil, nil,
 	*/
-	for _, space := range []int{0, 3, 1, 6, 2} {
+	for _, space := range []int{0, 4, 8} {
 		fmt.Fprintln(testHarness.In, fmt.Sprintf("%d", space))
 	}
 
