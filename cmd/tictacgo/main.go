@@ -20,12 +20,8 @@ func main() {
 		},
 	}
 
-	player2 := tictacgo.HumanPlayer{
+	player2 := tictacgo.BotPlayer{
 		PlayerInfo: tictacgo.PlayerInfo{Token: 'O'},
-		ChoiceProvider: tictacgo.IOHumanChoiceProvider{
-			In:  bufStdin,
-			Out: os.Stdout,
-		},
 	}
 
 	game := tictacgo.Game{
