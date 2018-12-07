@@ -29,6 +29,5 @@ func (cr ConsoleReporter) ReportGameProgress(b Board, _ rune, _ int) {
 }
 
 func (cr ConsoleReporter) ReportGameEnd(b Board, state GameState, winner Space) {
-	fmt.Fprint(cr.Out, b.String())
 	fmt.Fprintln(cr.Out, EndMessageForState(state, winner))
 }

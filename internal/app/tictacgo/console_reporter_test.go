@@ -76,7 +76,7 @@ func TestConsoleGameReporter(t *testing.T) {
 			reporter.ReportGameEnd(afb.Board, state, winner)
 
 			actualOutput := mockOutput.String()
-			return assert.Equal(afb.Board.String()+EndMessageForState(state, winner)+"\n", actualOutput)
+			return assert.Equal(EndMessageForState(state, winner)+"\n", actualOutput)
 		}, nil))
 	})
 }
