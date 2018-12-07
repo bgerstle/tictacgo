@@ -24,7 +24,12 @@ func (cr ConsoleReporter) ReportGameStart(b Board) {
 	fmt.Fprint(cr.Out, b.String())
 }
 
-func (cr ConsoleReporter) ReportGameProgress(b Board, _ rune, _ int) {
+func moveAnnouncement(playerToken rune, space int) string {
+	return fmt.Sprintf("Player '%c' chose space %d.", playerToken, space)
+}
+
+func (cr ConsoleReporter) ReportGameProgress(b Board, playerToken rune, space int) {
+	fmt.Fprintln(cr.Out, moveAnnouncement(playerToken, space))
 	fmt.Fprint(cr.Out, b.String())
 }
 
