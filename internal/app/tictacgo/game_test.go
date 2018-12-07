@@ -13,10 +13,6 @@ type MockPlayer struct {
 	PlayerInfo
 }
 
-func (mp MockPlayer) Info() PlayerInfo {
-	return mp.PlayerInfo
-}
-
 func (mp MockPlayer) ChooseSpace(b Board) int {
 	args := mp.Called(b)
 	return args.Int(0)
