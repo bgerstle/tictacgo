@@ -33,7 +33,7 @@ Game states.
 ## v0.4.0
 The robot overlords cometh. For now, just pick random moves.
 
-- [ ] Make one of the players a robot
+- [x] Make one of the players a robot
 
 ## v0.5.0
 Make the robot unbeatable (minmimax).
