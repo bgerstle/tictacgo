@@ -55,13 +55,10 @@ func TestEnterMove(t *testing.T) {
 
 	assert.Equal(expectedPrompt, actualPrompt)
 
-	fmt.Fprintln(testHarness.In, "4")
+	fmt.Fprintln(testHarness.In, "0")
 
-	tempResponse, tempResponseErr := testHarness.Out.ReadString('\n')
-
-	require.Nil(tempResponseErr)
-
-	assert.Equal("X chose space 4\n", tempResponse)
+	// discard empty line after prompt
+	testHarness.Out.ReadString(byte('\n'))
 
 	testHarness.Cmd.Process.Kill()
 }

@@ -1,24 +1,24 @@
 package tictacgo
 
-type humanChoiceProvider interface {
+type HumanChoiceProvider interface {
 	getChoice(p PlayerInfo, board Board) (int, error)
 }
 
-type humanPlayer struct {
+type HumanPlayer struct {
 	PlayerInfo
-	choiceProvider humanChoiceProvider
+	ChoiceProvider HumanChoiceProvider
 }
 
 // Info will return the info for this player
-func (p humanPlayer) Info() PlayerInfo {
+func (p HumanPlayer) Info() PlayerInfo {
 	return p.PlayerInfo
 }
 
 // ChooseSpace will ask the user for their desired space, retrying on error
-func (p humanPlayer) ChooseSpace(board Board) int {
+func (p HumanPlayer) ChooseSpace(board Board) int {
 	var choice int
 	for {
-		c, choiceErr := p.choiceProvider.getChoice(p.PlayerInfo, board)
+		c, choiceErr := p.ChoiceProvider.getChoice(p.PlayerInfo, board)
 		if choiceErr == nil {
 			choice = c
 			break

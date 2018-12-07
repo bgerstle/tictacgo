@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"bufio"
 	"os"
 
 	"github.com/bgerstle/tictacgo/internal/app/tictacgo"
@@ -10,17 +10,32 @@ import (
 func main() {
 	tictacgo.WriteWelcomeMessage(os.Stdout)
 
-	board := tictacgo.EmptyBoard()
-	fmt.Print(board.String())
+	bufStdin := bufio.NewReader(os.Stdin)
 
-	player1 := tictacgo.NewHumanPlayer(tictacgo.PlayerInfo{Token: 'X'})
-	player2 := tictacgo.NewHumanPlayer(tictacgo.PlayerInfo{Token: 'O'})
-
-	chooseMove := func(p tictacgo.Player) {
-		move := p.ChooseSpace(board)
-		fmt.Println(fmt.Sprintf("%c chose space %d", p.Info().Token, move))
+	player1 := tictacgo.HumanPlayer{
+		PlayerInfo: tictacgo.PlayerInfo{Token: 'X'},
+		ChoiceProvider: tictacgo.IOHumanChoiceProvider{
+			In:  bufStdin,
+			Out: os.Stdout,
+		},
 	}
 
-	chooseMove(player1)
-	chooseMove(player2)
+	player2 := tictacgo.HumanPlayer{
+		PlayerInfo: tictacgo.PlayerInfo{Token: 'O'},
+		ChoiceProvider: tictacgo.IOHumanChoiceProvider{
+			In:  bufStdin,
+			Out: os.Stdout,
+		},
+	}
+
+	game := tictacgo.Game{
+		Player1: player1,
+		Player2: player2,
+		Board:   tictacgo.EmptyBoard(),
+		Reporter: tictacgo.ConsoleReporter{
+			Out: os.Stdout,
+		},
+	}
+
+	game.Play()
 }

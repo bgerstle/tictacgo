@@ -26,14 +26,14 @@ func TestHumanPlayer(t *testing.T) {
 		for expectedChoice := range board.spaces {
 			mockCP := MockChoiceProvider{}
 
-			humanPlayer := humanPlayer{
+			HumanPlayer := HumanPlayer{
 				PlayerInfo:     PlayerInfo{Token: 'X'},
-				choiceProvider: &mockCP,
+				ChoiceProvider: &mockCP,
 			}
 
-			mockCP.On("getChoice", humanPlayer.PlayerInfo, board).Return(expectedChoice, nil)
+			mockCP.On("getChoice", HumanPlayer.PlayerInfo, board).Return(expectedChoice, nil)
 
-			actualChoice := humanPlayer.ChooseSpace(board)
+			actualChoice := HumanPlayer.ChooseSpace(board)
 
 			assert.Equal(expectedChoice, actualChoice)
 		}
@@ -46,17 +46,17 @@ func TestHumanPlayer(t *testing.T) {
 
 		mockCP := MockChoiceProvider{}
 
-		humanPlayer := humanPlayer{
+		HumanPlayer := HumanPlayer{
 			PlayerInfo:     PlayerInfo{Token: 'X'},
-			choiceProvider: &mockCP,
+			ChoiceProvider: &mockCP,
 		}
 
 		expectedChoice := 1
 
-		mockCP.On("getChoice", humanPlayer.PlayerInfo, board).Return(-1, errors.New("test")).Once()
-		mockCP.On("getChoice", humanPlayer.PlayerInfo, board).Return(expectedChoice, nil)
+		mockCP.On("getChoice", HumanPlayer.PlayerInfo, board).Return(-1, errors.New("test")).Once()
+		mockCP.On("getChoice", HumanPlayer.PlayerInfo, board).Return(expectedChoice, nil)
 
-		actualChoice := humanPlayer.ChooseSpace(board)
+		actualChoice := HumanPlayer.ChooseSpace(board)
 
 		assert.Equal(expectedChoice, actualChoice)
 	})

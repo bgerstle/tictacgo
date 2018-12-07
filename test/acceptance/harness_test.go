@@ -3,6 +3,7 @@ package tictacgo_test
 import (
 	"bufio"
 	"io"
+	"os"
 	"os/exec"
 	"strings"
 	"testing"
@@ -29,8 +30,12 @@ func StartTicTacGo(t *testing.T) AppTestHarness {
 	stdout, stdoutErr := ttgCmd.StdoutPipe()
 	require.Nil(stdoutErr)
 
+	teedStdout := io.TeeReader(stdout.(io.Reader), os.Stdout)
+
 	stderr, stderrErr := ttgCmd.StderrPipe()
 	require.Nil(stderrErr)
+
+	teedStderr := io.TeeReader(stderr.(io.Reader), os.Stdout)
 
 	stdin, stdinErr := ttgCmd.StdinPipe()
 	require.Nil(stdinErr)
@@ -40,41 +45,45 @@ func StartTicTacGo(t *testing.T) AppTestHarness {
 
 	return AppTestHarness{
 		Cmd: ttgCmd,
-		Out: bufio.NewReader(stdout),
-		Err: bufio.NewReader(stderr),
+		Out: bufio.NewReader(teedStdout),
+		Err: bufio.NewReader(teedStderr),
 		In:  stdin,
 		t:   t,
 	}
 }
 
-func (testHarness AppTestHarness) ReadInitialOutput() (initialOutputLines []string) {
-	require := require.New(testHarness.t)
+func (testHarness AppTestHarness) ReadBoard() []string {
 	testHarness.t.Helper()
+	require := require.New(testHarness.t)
 
 	expectedBoardLines := strings.Split(tictacgo.EmptyBoard().String(), "\n")
 	// drop trailing empty line
 	expectedBoardLines = expectedBoardLines[0 : len(expectedBoardLines)-1]
 	expectedBoardLinesLen := len(expectedBoardLines)
-	lastExpectedBoardLine := expectedBoardLines[expectedBoardLinesLen-1]
 
-	initialOutputLines = []string{}
-	for {
+	boardLines := []string{}
+	for i := 0; i < expectedBoardLinesLen; i++ {
 		line, lineErr := testHarness.Out.ReadString('\n')
+		require.NoError(lineErr)
 
 		line = strings.TrimRight(line, "\n")
 
-		require.Nil(lineErr)
-
-		initialOutputLines = append(initialOutputLines, line)
-		if line == lastExpectedBoardLine {
-			break
-		}
+		boardLines = append(boardLines, line)
 	}
 
-	require.Len(
-		initialOutputLines,
-		expectedBoardLinesLen+1,
-		"Expected output to contain welcome message plus empty board")
+	return boardLines
+}
 
-	return
+func (testHarness AppTestHarness) ReadInitialOutput() (initialOutputLines []string) {
+	testHarness.t.Helper()
+	require := require.New(testHarness.t)
+
+	welcomeLine, welcomeErr := testHarness.Out.ReadString('\n')
+	require.NoError(welcomeErr)
+	welcomeLine = strings.TrimRight(welcomeLine, "\n")
+	require.Equal(tictacgo.WelcomeMessage, welcomeLine)
+
+	boardLines := testHarness.ReadBoard()
+
+	return append([]string{welcomeLine}, boardLines...)
 }
