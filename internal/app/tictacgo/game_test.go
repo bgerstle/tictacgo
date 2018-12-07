@@ -13,7 +13,7 @@ type MockPlayer struct {
 	PlayerInfo
 }
 
-func (mp MockPlayer) ChooseSpace(b Board) int {
+func (mp *MockPlayer) ChooseSpace(b Board) int {
 	args := mp.Called(b)
 	return args.Int(0)
 }
@@ -22,15 +22,15 @@ type MockGameReporter struct {
 	mock.Mock
 }
 
-func (mgr MockGameReporter) ReportGameStart(b Board) {
+func (mgr *MockGameReporter) ReportGameStart(b Board) {
 	mgr.Called(b)
 }
 
-func (mgr MockGameReporter) ReportGameProgress(b Board, lastPlayerToken rune, lastPlayerSpace int) {
+func (mgr *MockGameReporter) ReportGameProgress(b Board, lastPlayerToken rune, lastPlayerSpace int) {
 	mgr.Called(b, lastPlayerToken, lastPlayerSpace)
 }
 
-func (mgr MockGameReporter) ReportGameEnd(finalBoard Board, state GameState, winner Space) {
+func (mgr *MockGameReporter) ReportGameEnd(finalBoard Board, state GameState, winner Space) {
 	mgr.Called(finalBoard, state, winner)
 }
 

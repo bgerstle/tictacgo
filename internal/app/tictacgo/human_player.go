@@ -5,15 +5,19 @@ import (
 	"os"
 )
 
-type HumanChoiceProvider interface {
+type humanChoiceProvider interface {
 	getChoice(p PlayerInfo, board Board) (int, error)
 }
 
+// HumanPlayer is a Player that picks its moves by reading user input.
 type HumanPlayer struct {
 	PlayerInfo
-	choiceProvider HumanChoiceProvider
+	choiceProvider humanChoiceProvider
 }
 
+// NewHumanPlayer is a factory method that creates a new HumanPlayer
+// with the given buffered input. The input must be buffered so as to
+// prevent other readers from "stealing" input meant for this HumanPlayer.
 func NewHumanPlayer(token rune, stdin *bufio.Reader) HumanPlayer {
 	return HumanPlayer{
 		PlayerInfo: PlayerInfo{Token: token},

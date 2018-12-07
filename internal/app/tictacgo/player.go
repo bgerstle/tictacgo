@@ -5,6 +5,7 @@ type PlayerInfo struct {
 	Token rune
 }
 
+// Info will return the receiver. Prevents Player types that embed PlayerInfo from having to implement it.
 func (pi PlayerInfo) Info() PlayerInfo {
 	return pi
 }

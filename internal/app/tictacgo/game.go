@@ -2,12 +2,16 @@ package tictacgo
 
 import "fmt"
 
+// GameReporter is an interface for types that report game updates.
 type GameReporter interface {
 	ReportGameStart(b Board)
 	ReportGameProgress(b Board, lastPlayerToken rune, lastPlayerSpace int)
 	ReportGameEnd(finalBoard Board, state GameState, winner Space)
 }
 
+// Game is a type that contains the current board, its players, and a reporter.
+// This is one of the highest-level objects in the app, as it has to orchestrate
+// the logical flow of the game.
 type Game struct {
 	Player1  Player
 	Player2  Player
@@ -15,6 +19,7 @@ type Game struct {
 	Reporter GameReporter
 }
 
+// PlayerForToken returns a reference to the player with a matching token.
 func (g Game) PlayerForToken(t rune) *Player {
 	if g.Player1.Info().Token == t {
 		return &(g.Player1)
@@ -24,6 +29,9 @@ func (g Game) PlayerForToken(t rune) *Player {
 	panic(fmt.Sprintf("Asked for player with unknown token: %c", t))
 }
 
+// Play will start the Tic Tac Toe game, asking each player to choose a spot
+// on the board in turn, assigning it on the board, and repeating until
+// the game state isn't pending.
 func (g *Game) Play() (GameState, *Player) {
 	p1MoveCount := len(g.Board.SpacesAssignedTo(g.Player1.Info().Token))
 	p2MoveCount := len(g.Board.SpacesAssignedTo(g.Player2.Info().Token))

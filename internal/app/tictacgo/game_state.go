@@ -1,11 +1,17 @@
 package tictacgo
 
+// GameState describes the current state of the game. See constants defined below.
 type GameState string
 
 const (
+	// Pending means the game is still going on.
 	Pending = GameState("pending")
+
+	// Victory indicates that one of the players has won.
 	Victory = GameState("victory")
-	Tie     = GameState("tie")
+
+	// Tie happens when the board has been filled without either player winning.
+	Tie = GameState("tie")
 )
 
 func isWinningVector(spaces []Space) bool {
@@ -16,6 +22,7 @@ func isWinningVector(spaces []Space) bool {
 		*spaces[1] == *spaces[2]
 }
 
+// GameState retrieves the GameState from the specified board, along with a winner if there is one.
 func (board Board) GameState() (GameState, Space) {
 	for _, row := range board.rows() {
 		if isWinningVector(row) {

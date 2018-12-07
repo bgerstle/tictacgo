@@ -29,6 +29,7 @@ func EmptyBoard() Board {
 	return b
 }
 
+// SpacesAssignedTo returns the indexes of spaces assigned to the given token.
 func (b Board) SpacesAssignedTo(t rune) []int {
 	tSpaces := []int{}
 	for i, space := range b.spaces {

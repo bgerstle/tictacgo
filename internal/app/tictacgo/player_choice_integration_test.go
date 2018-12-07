@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestioHumanChoiceProviderIntegration(t *testing.T) {
+func TestHumanChoiceProviderIntegration(t *testing.T) {
 	t.Run("returns choice specified in input", func(t *testing.T) {
 		assert := assert.New(t)
 

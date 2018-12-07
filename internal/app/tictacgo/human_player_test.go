@@ -12,7 +12,7 @@ type MockchoiceProvider struct {
 	mock.Mock
 }
 
-func (mock MockchoiceProvider) getChoice(p PlayerInfo, b Board) (int, error) {
+func (mock *MockchoiceProvider) getChoice(p PlayerInfo, b Board) (int, error) {
 	args := mock.Called(p, b)
 	return args.Int(0), args.Error(1)
 }
