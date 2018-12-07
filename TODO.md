@@ -27,8 +27,8 @@ Accept user input (no game-end state yet).
 Game states.
 
 - [x] Derive game state from occupied spaces on a board
-- [ ] Start a game with 2 players
-- [ ] When a move ends the game, print the status & exit
+- [x] Start a game with 2 players
+- [x] When a move ends the game, print the status & exit
 
 ## v0.4.0
 The robot overlords cometh. For now, just pick random moves.
