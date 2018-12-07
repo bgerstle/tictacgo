@@ -52,7 +52,7 @@ func TestConsoleGameReporter(t *testing.T) {
 		assert.Equal(EmptyBoard().String(), actualOutput)
 	})
 
-	t.Run("Progress prints board", func(t *testing.T) {
+	t.Run("Progress prints move, then board", func(t *testing.T) {
 		assert := assert.New(t)
 
 		assert.NoError(quick.Check(func(aab ArbitraryAnyBoard) bool {
@@ -62,7 +62,10 @@ func TestConsoleGameReporter(t *testing.T) {
 			reporter.ReportGameProgress(aab.Board, aab.Player1Token, 0)
 
 			actualOutput := mockOutput.String()
-			return assert.Equal(aab.Board.String(), actualOutput)
+			return assert.Equal(
+				moveAnnouncement(aab.Player1Token, 0)+"\n"+aab.Board.String(),
+				actualOutput,
+			)
 		}, nil))
 	})
 
