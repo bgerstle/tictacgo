@@ -28,7 +28,7 @@ The result will be in the root directory, which you can run via: `./tictacgo`.
 Build and run the app as described above, or you can run from source using `go run`:
 
 ``` shell
-go run github.com/bgerstle/tictacgo/cmd/tictacgo/main.go
+go run github.com/bgerstle/tictacgo/cmd/tictacgo
 ```
 
 > or `make run`
