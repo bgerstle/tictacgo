@@ -100,6 +100,19 @@ func Test_minimaxScoring(t *testing.T) {
 	assert.NoError(quick.Check(prefersShallowerVictories, nil))
 }
 
+func Test_minimaxBlocksOpponent(t *testing.T) {
+	assert := assert.New(t)
+
+	board := NewTestBoardWithSpaces([]Space{
+		X, X, nil,
+		O, nil, nil,
+		nil, nil, nil,
+	})
+	chosenMove := chooseSpaceForActivePlayer(board)
+
+	assert.Equal(2, chosenMove)
+}
+
 func Example_minimax_ChooseSpot() {
 	board := NewTestBoardWithSpaces([]Space{
 		X, X, nil,
