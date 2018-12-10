@@ -7,19 +7,73 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type tokenSpacesTuple struct {
+	token  rune
+	spaces []int
+}
+
+func popInt(xs *[]int) int {
+	x := (*xs)[0]
+	popped := (*xs)[1:]
+	xs = &popped
+	return x
+}
+
+func interleaveInts(s1, s2 []int) []int {
+	ss := make([]int, len(s1)+len(s2))
+	for i := range ss {
+		var space int
+		if i%2 == 0 {
+			space = s1[0]
+			s1 = s1[1:]
+		} else {
+			space = s2[0]
+			s2 = s2[1:]
+		}
+		ss[i] = space
+	}
+	return ss
+}
+
+func (b Board) fillWithSpaces(spaces [2][]int) Board {
+	interleaved := interleaveInts(spaces[0], spaces[1])
+
+	if len(interleaved) > len(b.AvailableSpaces()) {
+		panic(fmt.Sprintf(
+			"Can't fill board with %d spaces when there are only %d available",
+			len(interleaved),
+			len(b.AvailableSpaces())))
+	}
+
+	for _, space := range interleaved {
+		b, _, _ = b.AssignSpace(space)
+	}
+
+	return b
+}
+
+func NewTestBoardWithSpaces(spaces []Space) Board {
+	b := NewEmptyTestBoard()
+
+	activeSpaces := spacesAssignedTo(x, spaces)
+	nextSpaces := spacesAssignedTo(o, spaces)
+	return b.fillWithSpaces([2][]int{
+		activeSpaces,
+		nextSpaces,
+	})
+}
+
 func TestPendingGameState(t *testing.T) {
 	t.Run("example pending board", func(t *testing.T) {
 		assert := assert.New(t)
 
 		pendingBoards := []Board{
-			EmptyBoard(),
-			Board{
-				spaces: []Space{
-					X, O, nil,
-					nil, nil, nil,
-					nil, nil, nil,
-				},
-			},
+			NewEmptyTestBoard(),
+			NewTestBoardWithSpaces([]Space{
+				X, O, nil,
+				nil, nil, nil,
+				nil, nil, nil,
+			}),
 		}
 
 		for _, board := range pendingBoards {
@@ -69,33 +123,27 @@ func TestExampleVictoryGameState(t *testing.T) {
 		"row",
 		[]GameStateTestData{
 			{
-				Board{
-					spaces: []Space{
-						X, X, X,
-						nil, O, O,
-						nil, nil, nil,
-					},
-				},
+				NewTestBoardWithSpaces([]Space{
+					X, X, X,
+					nil, O, O,
+					nil, nil, nil,
+				}),
 				x,
 			},
 			{
-				Board{
-					spaces: []Space{
-						X, nil, nil,
-						O, O, O,
-						X, nil, nil,
-					},
-				},
+				NewTestBoardWithSpaces([]Space{
+					X, nil, X,
+					O, O, O,
+					X, nil, nil,
+				}),
 				o,
 			},
 			{
-				Board{
-					spaces: []Space{
-						nil, nil, nil,
-						O, nil, O,
-						X, X, X,
-					},
-				},
+				NewTestBoardWithSpaces([]Space{
+					nil, nil, nil,
+					O, nil, O,
+					X, X, X,
+				}),
 				x,
 			},
 		},
@@ -106,33 +154,27 @@ func TestExampleVictoryGameState(t *testing.T) {
 		"column",
 		[]GameStateTestData{
 			{
-				Board{
-					spaces: []Space{
-						X, O, O,
-						X, nil, nil,
-						X, nil, nil,
-					},
-				},
+				NewTestBoardWithSpaces([]Space{
+					X, O, O,
+					X, nil, nil,
+					X, nil, nil,
+				}),
 				x,
 			},
 			{
-				Board{
-					spaces: []Space{
-						nil, O, nil,
-						X, O, X,
-						nil, O, nil,
-					},
-				},
+				NewTestBoardWithSpaces([]Space{
+					nil, O, nil,
+					X, O, X,
+					nil, O, X,
+				}),
 				o,
 			},
 			{
-				Board{
-					spaces: []Space{
-						nil, nil, X,
-						nil, nil, X,
-						O, O, X,
-					},
-				},
+				NewTestBoardWithSpaces([]Space{
+					nil, nil, X,
+					nil, nil, X,
+					O, O, X,
+				}),
 				x,
 			},
 		},
@@ -143,23 +185,19 @@ func TestExampleVictoryGameState(t *testing.T) {
 		"diagonal",
 		[]GameStateTestData{
 			{
-				Board{
-					spaces: []Space{
-						X, O, O,
-						nil, X, nil,
-						nil, nil, X,
-					},
-				},
+				NewTestBoardWithSpaces([]Space{
+					X, O, O,
+					nil, X, nil,
+					nil, nil, X,
+				}),
 				x,
 			},
 			{
-				Board{
-					spaces: []Space{
-						nil, nil, O,
-						X, O, X,
-						O, nil, nil,
-					},
-				},
+				NewTestBoardWithSpaces([]Space{
+					X, nil, O,
+					X, O, X,
+					O, nil, nil,
+				}),
 				o,
 			},
 		},
@@ -168,27 +206,21 @@ func TestExampleVictoryGameState(t *testing.T) {
 
 func TestTieGameState(t *testing.T) {
 	tiedBoards := []Board{
-		Board{
-			spaces: []Space{
-				X, O, X,
-				X, O, O,
-				O, X, X,
-			},
-		},
-		Board{
-			spaces: []Space{
-				X, O, X,
-				X, O, X,
-				O, X, O,
-			},
-		},
-		Board{
-			spaces: []Space{
-				O, X, X,
-				X, O, O,
-				X, O, X,
-			},
-		},
+		NewTestBoardWithSpaces([]Space{
+			X, O, X,
+			X, O, O,
+			O, X, X,
+		}),
+		NewTestBoardWithSpaces([]Space{
+			X, O, X,
+			X, O, X,
+			O, X, O,
+		}),
+		NewTestBoardWithSpaces([]Space{
+			O, X, X,
+			X, O, O,
+			X, O, X,
+		}),
 	}
 
 	for i, board := range tiedBoards {
@@ -209,15 +241,15 @@ func TestTieGameState(t *testing.T) {
 
 func TestVictoryWithDifferentRefs(t *testing.T) {
 	runes := []rune{
-		'o', 'x', 'x',
-		'x', 'o', 'x',
-		'o', 'x', 'o',
+		'O', 'X', 'O',
+		'O', 'O', 'X',
+		'X', 'X', 'X',
 	}
 	spaces := make([]Space, len(runes))
 	for i := range spaces {
 		spaces[i] = Space(&runes[i])
 	}
-	board := Board{spaces}
+	board := NewTestBoardWithSpaces(spaces)
 	state, _ := board.GameState()
 	if state != Victory {
 		t.Error("Expected board filled with all different pointers to have the expected result")

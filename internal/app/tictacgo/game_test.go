@@ -14,8 +14,7 @@ type MockPlayer struct {
 }
 
 func (mp *MockPlayer) ChooseSpace(b Board) int {
-	args := mp.Called(b)
-	return args.Int(0)
+	return mp.Called(b).Int(0)
 }
 
 type MockGameReporter struct {
@@ -50,14 +49,17 @@ func TestGame_PlayerForToken(t *testing.T) {
 	g := Game{
 		Player1: &mockPlayer1,
 		Player2: &mockPlayer2,
-		Board:   EmptyBoard(),
+		Board: NewBoard([2]PlayerInfo{
+			mockPlayer1.Info(),
+			mockPlayer2.Info(),
+		}),
 	}
 
-	playerForX := g.PlayerForToken(x)
+	playerForX := g.PlayerForSpace(X)
 	require.NotNil(playerForX)
 	assert.Equal(&mockPlayer1, *playerForX)
 
-	playerForO := g.PlayerForToken(o)
+	playerForO := g.PlayerForSpace(O)
 	require.NotNil(playerForO)
 	assert.Equal(&mockPlayer2, *playerForO)
 }
@@ -65,6 +67,12 @@ func TestGame_PlayerForToken(t *testing.T) {
 func TestPlayChoosesMovesThenEnds(t *testing.T) {
 	require := require.New(t)
 	assert := assert.New(t)
+
+	finalBoard := NewTestBoardWithSpaces([]Space{
+		X, X, X,
+		O, nil, nil,
+		O, nil, nil,
+	})
 
 	mockPlayer1 := MockPlayer{
 		mock.Mock{},
@@ -76,50 +84,34 @@ func TestPlayChoosesMovesThenEnds(t *testing.T) {
 	}
 	mockReporter := MockGameReporter{}
 
-	finalBoard := Board{
-		spaces: []Space{
-			X, X, X,
-			O, nil, nil,
-			O, nil, nil,
-		},
-	}
-
 	g := Game{
-		Player1:  &mockPlayer1,
-		Player2:  &mockPlayer2,
-		Board:    EmptyBoard(),
+		Player1: &mockPlayer1,
+		Player2: &mockPlayer2,
+		Board: NewBoard([2]PlayerInfo{
+			mockPlayer1.Info(),
+			mockPlayer2.Info(),
+		}),
 		Reporter: &mockReporter,
 	}
 
 	mockReporter.On("ReportGameStart", g.Board).Return().Once()
 
+	expectedSpaces := interleaveInts(finalBoard.SpacesAssignedTo(x), finalBoard.SpacesAssignedTo(o))
+
 	expectedBoard := g.Board
-	expectedP1Moves := finalBoard.SpacesAssignedTo(mockPlayer1.Token)
-	p1WriteIndex := 0
-	expectedP2Moves := finalBoard.SpacesAssignedTo(mockPlayer2.Token)
-	p2WriteIndex := 0
-	for i := 0; i < len(expectedP1Moves)+len(expectedP2Moves); i++ {
-		var (
-			currentPlayer *MockPlayer
-			space         int
-		)
-		if i%2 == 0 {
+	for _, space := range expectedSpaces {
+		var currentPlayer *MockPlayer
+		if expectedBoard.ActivePlayerToken() == mockPlayer1.Token {
 			currentPlayer = &mockPlayer1
-			space = expectedP1Moves[p1WriteIndex]
-			p1WriteIndex++
 		} else {
 			currentPlayer = &mockPlayer2
-			space = expectedP2Moves[p2WriteIndex]
-			p2WriteIndex++
 		}
-
-		token := (*currentPlayer).Token
 		(*currentPlayer).On("ChooseSpace", expectedBoard).Return(space).Once()
-		expectedBoard = expectedBoard.AssignSpace(space, &token)
-		mockReporter.On("ReportGameProgress", expectedBoard, token, space).Return().Once()
+		expectedBoard, _, _ = expectedBoard.AssignSpace(space)
+		mockReporter.On("ReportGameProgress", expectedBoard, currentPlayer.Token, space).Return().Once()
 	}
 
-	mockReporter.On("ReportGameEnd", expectedBoard, Victory, X)
+	mockReporter.On("ReportGameEnd", finalBoard, Victory, X)
 
 	state, winner := g.Play()
 
@@ -131,4 +123,6 @@ func TestPlayChoosesMovesThenEnds(t *testing.T) {
 	assert.Equal(&g.Player1, winner)
 	assert.Equal(finalBoard, g.Board)
 	mockReporter.AssertExpectations(t)
+	mockPlayer1.AssertExpectations(t)
+	mockPlayer2.AssertExpectations(t)
 }

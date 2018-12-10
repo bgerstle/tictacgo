@@ -2,6 +2,7 @@ package tictacgo
 
 import (
 	"bytes"
+	"fmt"
 	"math/rand"
 	"reflect"
 	"testing"
@@ -19,14 +20,12 @@ func (aab ArbitraryAnyBoard) Generate(rand *rand.Rand, size int) reflect.Value {
 
 	numMoves := size % len(shuffledSpaces)
 
-	for i, space := range shuffledSpaces[:numMoves] {
-		var currentToken rune
-		if i%2 == 0 {
-			currentToken = aab.Player1Token
-		} else {
-			currentToken = aab.Player2Token
+	for _, space := range shuffledSpaces[:numMoves] {
+		var state GameState
+		aab.Board, state, _ = aab.Board.AssignSpace(space)
+		if state != Pending {
+			break
 		}
-		aab.Board = aab.Board.AssignSpace(space, &currentToken)
 	}
 	return reflect.ValueOf(aab)
 }
@@ -46,10 +45,10 @@ func TestConsoleGameReporter(t *testing.T) {
 
 		mockOutput, reporter := setup()
 
-		reporter.ReportGameStart(EmptyBoard())
+		reporter.ReportGameStart(NewEmptyTestBoard())
 
 		actualOutput := mockOutput.String()
-		assert.Equal(EmptyBoard().String(), actualOutput)
+		assert.Equal(NewEmptyTestBoard().String(), actualOutput)
 	})
 
 	t.Run("Progress prints move, then board", func(t *testing.T) {
@@ -59,11 +58,11 @@ func TestConsoleGameReporter(t *testing.T) {
 			mockOutput, reporter := setup()
 
 			// last two args aren't used, so passing dummy values
-			reporter.ReportGameProgress(aab.Board, aab.Player1Token, 0)
+			reporter.ReportGameProgress(aab.Board, aab.Board.ActivePlayerToken(), 0)
 
 			actualOutput := mockOutput.String()
 			return assert.Equal(
-				moveAnnouncement(aab.Player1Token, 0)+"\n"+aab.Board.String(),
+				moveAnnouncement(aab.Board.ActivePlayerToken(), 0)+"\n"+aab.Board.String(),
 				actualOutput,
 			)
 		}, nil))
@@ -72,14 +71,41 @@ func TestConsoleGameReporter(t *testing.T) {
 	t.Run("End prints board and state message", func(t *testing.T) {
 		assert := assert.New(t)
 
-		assert.NoError(quick.Check(func(afb ArbitraryFullBoard) bool {
+		assert.NoError(quick.Check(func(avb ArbitraryVictoryBoard) bool {
 			mockOutput, reporter := setup()
 
-			state, winner := afb.GameState()
-			reporter.ReportGameEnd(afb.Board, state, winner)
+			state, winner := avb.GameState()
+			reporter.ReportGameEnd(avb.Board, state, winner)
 
 			actualOutput := mockOutput.String()
 			return assert.Equal(EndMessageForState(state, winner)+"\n", actualOutput)
 		}, nil))
 	})
+
+	t.Run("Prints tie message for a tie", func(t *testing.T) {
+		assert := assert.New(t)
+
+		mockOutput, reporter := setup()
+
+		board := NewTestBoardWithSpaces([]Space{
+			X, O, X,
+			O, X, X,
+			O, X, O,
+		})
+		state, winner := board.GameState()
+
+		reporter.ReportGameEnd(board, state, winner)
+
+		actualOutput := mockOutput.String()
+
+		assert.Equal(EndMessageForState(state, winner)+"\n", actualOutput)
+	})
+}
+
+func ExampleEndMessageForState() {
+	fmt.Println(EndMessageForState(Tie, Space(nil)))
+	fmt.Println(EndMessageForState(Victory, X))
+	// Output:
+	// No winners or losers here, it's a tie!
+	// Player 'X' won!
 }

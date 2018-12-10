@@ -47,18 +47,15 @@ func (at ArbitraryToken) GenerateRune(rand *rand.Rand, size int) rune {
 
 type ArbitraryBoard struct {
 	Board
-	Player1Token rune
-	Player2Token rune
 }
 
 func (ab ArbitraryBoard) Generate(rand *rand.Rand, size int) reflect.Value {
-	ab.Board = EmptyBoard()
 	atp := ArbitraryTokenPair{}.Generate(rand, size).Interface().(ArbitraryTokenPair)
-	ab.Player1Token = rune(atp[0])
-	ab.Player2Token = rune(atp[1])
-	if ab.Player1Token == ab.Player2Token {
-		panic("Winning and losing tokens must not be the same")
-	}
+
+	ab.Board = NewBoard([2]PlayerInfo{
+		PlayerInfo{rune(atp[0])},
+		PlayerInfo{rune(atp[1])},
+	})
 	return reflect.ValueOf(ab)
 }
 
@@ -69,14 +66,8 @@ func (apb ArbitraryPendingBoard) Generate(rand *rand.Rand, size int) reflect.Val
 
 	shuffledSpaces := rand.Perm(apb.Board.SpacesLen())
 
-	for i, space := range shuffledSpaces[:size%6] {
-		var currentToken rune
-		if i%2 == 0 {
-			currentToken = apb.Player1Token
-		} else {
-			currentToken = apb.Player2Token
-		}
-		apb.Board = apb.Board.AssignSpace(space, &currentToken)
+	for _, space := range shuffledSpaces[:size%6] {
+		apb.Board, _, _ = apb.Board.AssignSpace(space)
 	}
 	return reflect.ValueOf(apb)
 }
@@ -105,14 +96,9 @@ type ArbitraryVictoryBoard struct {
 func (avb ArbitraryVictoryBoard) Generate(rand *rand.Rand, size int) reflect.Value {
 	avb.ArbitraryBoard = avb.ArbitraryBoard.Generate(rand, size).Interface().(ArbitraryBoard)
 
-	// choose who will win
-	if rand.Int31n(2) == 0 {
-		avb.WinningToken = avb.Player1Token
-		avb.LosingToken = avb.Player2Token
-	} else {
-		avb.WinningToken = avb.Player2Token
-		avb.LosingToken = avb.Player1Token
-	}
+	// first player always wins for now
+	avb.WinningToken = avb.Board.ActivePlayerToken()
+	avb.LosingToken = avb.Board.NextPlayerToken()
 
 	// choose how they win
 	possibleWinningVectors := [][]int{}
@@ -124,18 +110,29 @@ func (avb ArbitraryVictoryBoard) Generate(rand *rand.Rand, size int) reflect.Val
 
 	winningVector := possibleWinningVectors[winningVectorIndex]
 
-	// assign winning spaces
-	for _, spaceIndex := range winningVector {
-		avb.Board = avb.Board.AssignSpace(spaceIndex, &avb.WinningToken)
-	}
-
-	// assign losing spaces
+	// choose 2 losing spaces that aren't in the winning vector
 	possibleLosingSpaces := avb.Board.AvailableSpaces()
-	rand.Shuffle(len(possibleLosingSpaces), func(i, j int) {
-		possibleLosingSpaces[i], possibleLosingSpaces[j] = possibleLosingSpaces[j], possibleLosingSpaces[i]
+	losingSpaces := []int{}
+	for _, losingSpace := range possibleLosingSpaces {
+		taken := false
+		for _, winningSpace := range winningVector {
+			if losingSpace == winningSpace {
+				taken = true
+				break
+			}
+		}
+		if !taken {
+			losingSpaces = append(losingSpaces, losingSpace)
+		}
+	}
+	rand.Shuffle(len(losingSpaces), func(i, j int) {
+		losingSpaces[i], losingSpaces[j] = losingSpaces[j], losingSpaces[i]
 	})
-	for _, spaceIndex := range possibleLosingSpaces[:2] {
-		avb.Board = avb.Board.AssignSpace(spaceIndex, &avb.LosingToken)
+	losingSpaces = losingSpaces[:2]
+
+	allSpaces := interleaveInts(winningVector, losingSpaces)
+	for _, space := range allSpaces {
+		avb.Board, _, _ = avb.Board.AssignSpace(space)
 	}
 
 	return reflect.ValueOf(avb)
@@ -148,60 +145,6 @@ func TestArbitraryVictoryGameState(t *testing.T) {
 		state, winner := avb.GameState()
 		// fmt.Printf("state %s, winner %#v, board: \n%s", state, spaceToString(winner, "null"), avb.Board.String())
 		return state == Victory && winner != nil && *winner == avb.WinningToken
-	}, nil)
-	assert.Nil(qcErr)
-}
-
-type ArbitraryFullBoard struct {
-	ArbitraryBoard
-}
-
-func (afb ArbitraryFullBoard) Generate(rand *rand.Rand, size int) reflect.Value {
-	afb.ArbitraryBoard = afb.ArbitraryBoard.Generate(rand, size).Interface().(ArbitraryBoard)
-
-	shuffledSpaces := rand.Perm(afb.Board.SpacesLen())
-
-	for i, space := range shuffledSpaces {
-		var currentToken rune
-		if i%2 == 0 {
-			currentToken = afb.Player1Token
-		} else {
-			currentToken = afb.Player2Token
-		}
-		afb.Board = afb.Board.AssignSpace(space, &currentToken)
-	}
-	if len(afb.Board.AvailableSpaces()) > 0 {
-		panic("Board should have been filled")
-	}
-	return reflect.ValueOf(afb)
-}
-
-func TestFullBoardEitherTieOrVictory(t *testing.T) {
-	assert := assert.New(t)
-
-	qcErr := quick.Check(func(afb ArbitraryFullBoard) bool {
-		// fmt.Println(fmt.Sprintf("checking state of board : \n%s", afb.Board.String()))
-		state, winner := afb.GameState()
-		// fmt.Println(fmt.Sprintf("and the result was: %s, %s", state, spaceToString(winner, "null")))
-		switch state {
-		case Tie:
-			if winner == nil {
-				// Ties don't have a winner
-				return true
-			}
-			return false
-		case Victory:
-			if winner != nil {
-				// If the board is full and it's not a tie, must be a victory (with a winner)
-				return true
-			}
-			return false
-		case Pending:
-		default:
-			break
-		}
-		// Full boards should never be pending
-		return false
 	}, nil)
 	assert.Nil(qcErr)
 }

@@ -6,6 +6,15 @@ import (
 	"sort"
 )
 
+// entry point to minimax algorithm.
+func chooseSpotForActivePlayer(board Board) int {
+	mm := minimax{
+		maxPlayer: board.ActivePlayerToken(),
+		minPlayer: board.NextPlayerToken(),
+	}
+	return mm.chooseSpotAtDepth(board, 0)
+}
+
 const maxScore = math.MaxFloat64
 
 type score struct {
@@ -20,11 +29,6 @@ func (s score) lessThan(otherScore score) bool {
 type minimax struct {
 	maxPlayer rune
 	minPlayer rune
-}
-
-// entry point to minimax algorithm.
-func (mm minimax) chooseSpot(playerToken rune, board Board) int {
-	return mm.chooseSpotAtDepth(playerToken, board, 0)
 }
 
 func (mm minimax) opponent(player rune) rune {
@@ -57,9 +61,11 @@ func (mm minimax) scoreVictory(winner rune, depth int) float64 {
 	return mm.scoreModifier(winner) * maxScore / float64(depth)
 }
 
-func (mm minimax) score(space int, board Board, playerToken rune, depth int) score {
-	result := board.AssignSpace(space, &playerToken)
-	state, winner := result.GameState()
+func (mm minimax) score(space int, board Board, depth int) score {
+	playerToken := board.ActivePlayerToken()
+
+	nextBoard, state, winner := board.AssignSpace(space)
+
 	switch state {
 	case Victory:
 		return score{
@@ -82,24 +88,24 @@ func (mm minimax) score(space int, board Board, playerToken rune, depth int) sco
 		panic("Should have been a tie")
 	}
 
-	nextPlayer := mm.opponent(playerToken)
-	scores := mm.scoreSpaces(nextPlayer, result, depth+1)
+	scores := mm.scoreSpaces(nextBoard, depth+1)
 	return score{
 		spaceIndex: space,
 		value:      mm.minOrMax(playerToken, scores).value,
 	}
 }
 
-func (mm minimax) scoreSpaces(player rune, board Board, depth int) (scores []score) {
+func (mm minimax) scoreSpaces(board Board, depth int) (scores []score) {
 	spaces := board.AvailableSpaces()
 	scores = make([]score, len(spaces))
 	for i, space := range spaces {
-		scores[i] = mm.score(space, board, player, depth)
+		scores[i] = mm.score(space, board, depth)
 	}
 	return
 }
 
-func (mm minimax) chooseSpotAtDepth(playerToken rune, board Board, depth int) int {
-	scores := mm.scoreSpaces(playerToken, board, depth)
+func (mm minimax) chooseSpotAtDepth(board Board, depth int) int {
+	playerToken := board.ActivePlayerToken()
+	scores := mm.scoreSpaces(board, depth)
 	return mm.minOrMax(playerToken, scores).spaceIndex
 }

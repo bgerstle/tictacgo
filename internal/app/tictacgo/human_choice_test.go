@@ -32,7 +32,7 @@ func assertExpectedMovePrompt(t *testing.T, reader *bufio.Reader, player PlayerI
 func TestHumanChoiceProviderValidInputs(t *testing.T) {
 	assert := assert.New(t)
 
-	board := EmptyBoard()
+	board := NewEmptyTestBoard()
 
 	for spaceNum := range board.AvailableSpaces() {
 		mockOutput := &bytes.Buffer{}
@@ -67,7 +67,7 @@ func TestHumanChoiceProviderInvalidInputs(t *testing.T) {
 		t.Run(fmt.Sprintf("invalid input %d", i), func(t *testing.T) {
 			assert := assert.New(t)
 
-			board := EmptyBoard()
+			board := NewEmptyTestBoard()
 
 			mockOutput := &bytes.Buffer{}
 			mockInput := bytes.Buffer{}
@@ -104,7 +104,7 @@ func TestHumanChoiceProviderInvalidInputs(t *testing.T) {
 
 		playerInfo := PlayerInfo{Token: 'X'}
 
-		board := EmptyBoard().AssignSpace(0, &playerInfo.Token)
+		board, _, _ := NewEmptyTestBoard().AssignSpace(0)
 
 		mockOutput := &bytes.Buffer{}
 		mockInput := bytes.NewBufferString("0\n")

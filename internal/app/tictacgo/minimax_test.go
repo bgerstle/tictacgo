@@ -82,21 +82,15 @@ func Test_minimaxScoring(t *testing.T) {
 }
 
 func Example_minimax_ChooseSpot() {
-	board := Board{
-		spaces: []Space{
-			X, X, nil,
-			O, O, nil,
-			nil, nil, nil,
-		},
-	}
+	board := NewTestBoardWithSpaces([]Space{
+		X, X, nil,
+		O, O, nil,
+		nil, nil, nil,
+	})
 
-	mm := minimax{
-		maxPlayer: x,
-		minPlayer: o,
-	}
-
-	xsBest := mm.chooseSpot(x, board)
-	osBest := mm.chooseSpot(o, board)
+	xsBest := chooseSpotForActivePlayer(board)
+	board, _, _ = board.AssignSpace(6)
+	osBest := chooseSpotForActivePlayer(board)
 
 	fmt.Println(fmt.Sprintf("X's winning move in spot %d was chosen", xsBest))
 	fmt.Println(fmt.Sprintf("O's winning move in spot %d was chosen", osBest))

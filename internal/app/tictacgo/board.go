@@ -2,18 +2,10 @@ package tictacgo
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
 )
 
 // Space on a board, can either contain a run (e.g. 'X') or `nil` if the space is empty.
 type Space *rune
-
-// Board represents the board in a game of Tic Tac Toe.
-type Board struct {
-	// The spaces on the board. Not meant to be manipulated directly.
-	spaces []Space
-}
 
 func spaceToString(space Space, fallback string) string {
 	if space == nil {
@@ -22,22 +14,56 @@ func spaceToString(space Space, fallback string) string {
 	return string(*space)
 }
 
-// EmptyBoard creates a new Board with empty spaces.
-func EmptyBoard() Board {
+// Board represents the board in a game of Tic Tac Toe.
+type Board struct {
+	// The spaces on the board. Not meant to be manipulated directly.
+	spaces  []Space
+	players [2]PlayerInfo
+	turn    int
+}
+
+func NewBoard(players [2]PlayerInfo) Board {
+	if players[0].Token == players[1].Token {
+		panic("Can't create a board with players who share the same token.")
+	}
 	b := Board{}
 	b.spaces = make([]Space, 9)
+	b.players = players
+	b.turn = 0
 	return b
 }
 
-// SpacesAssignedTo returns the indexes of spaces assigned to the given token.
-func (b Board) SpacesAssignedTo(t rune) []int {
+// EmptyBoard creates a new Board with empty spaces.
+func EmptyBoard() Board {
+	return NewBoard([2]PlayerInfo{
+		PlayerInfo{'X'},
+		PlayerInfo{'O'},
+	})
+}
+
+func (b Board) ActivePlayerToken() rune {
+	index := b.turn % len(b.players)
+	return b.players[index].Token
+}
+
+func (b Board) NextPlayerToken() rune {
+	index := (b.turn + 1) % len(b.players)
+	return b.players[index].Token
+}
+
+func spacesAssignedTo(t rune, spaces []Space) []int {
 	tSpaces := []int{}
-	for i, space := range b.spaces {
+	for i, space := range spaces {
 		if space != nil && *space == t {
 			tSpaces = append(tSpaces, i)
 		}
 	}
 	return tSpaces
+}
+
+// SpacesAssignedTo returns the indexes of spaces assigned to the given token.
+func (b Board) SpacesAssignedTo(t rune) []int {
+	return spacesAssignedTo(t, b.spaces)
 }
 
 // AvailableSpaces returns a list of indexes for empty spaces on the board.
@@ -63,15 +89,25 @@ func (b Board) IsSpaceAvailable(index int) bool {
 
 // AssignSpace returns a new board with the chosen space assigned.
 // A new board is returned in order to keep boards (publicly) immutable.
-func (b Board) AssignSpace(index int, value Space) Board {
+func (b Board) AssignSpace(index int) (Board, GameState, Space) {
+	currentState, _ := b.GameState()
+	if currentState != Pending {
+		panic(fmt.Sprintf("Can't assign spaces to a board in state '%s'", currentState))
+	}
 	if !b.IsSpaceAvailable(index) {
 		panic(fmt.Sprintf("Space %d is already taken", index))
 	}
 
-	newBoard := EmptyBoard()
+	currentToken := b.ActivePlayerToken()
+
+	newBoard := NewBoard(b.players)
 	copy(newBoard.spaces, b.spaces)
-	newBoard.spaces[index] = value
-	return newBoard
+	newBoard.spaces[index] = &currentToken
+	newBoard.turn = b.turn + 1
+
+	state, winner := newBoard.GameState()
+
+	return newBoard, state, winner
 }
 
 func (b Board) spaceVectorsForIndexVectors(indexVectors [][]int) [][]Space {
@@ -129,42 +165,4 @@ func (b Board) diagonalIndexVectors() [][]int {
 			2, 4, 6,
 		},
 	}
-
-}
-
-const rowSeparator = "===+===+==="
-const spaceSeparator = "|"
-
-func surroundWithSpaces(s string) string {
-	return " " + s + " "
-}
-
-// Serialize the board into a string, suitable for writing to the console.
-func (b Board) String() string {
-	spaceStrs := make([]string, len(b.spaces))
-	for i, space := range b.spaces {
-		spaceStrs[i] = surroundWithSpaces(spaceToString(space, strconv.Itoa(i)))
-	}
-
-	rows := make([]string, 3)
-	for i, token := range spaceStrs {
-		rowNumber := i / 3
-		row := rows[rowNumber]
-		if row != "" {
-			row += spaceSeparator
-		}
-		rows[rowNumber] = row + token
-	}
-
-	builder := strings.Builder{}
-
-	for i, row := range rows {
-		if i != 0 {
-			builder.WriteString(rowSeparator)
-			builder.WriteString("\n")
-		}
-		builder.WriteString(row)
-		builder.WriteString("\n")
-	}
-	return builder.String()
 }

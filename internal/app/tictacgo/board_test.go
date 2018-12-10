@@ -2,11 +2,14 @@ package tictacgo
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 	"reflect"
 	"strings"
 	"testing"
 	"testing/quick"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -16,11 +19,27 @@ var o = 'O'
 var X = Space(&x)
 var O = Space(&o)
 
+// Utility function for creating an empty test board w/ players X & O
+func NewEmptyTestBoard() Board {
+	return NewBoard([2]PlayerInfo{
+		PlayerInfo{x},
+		PlayerInfo{o},
+	})
+}
+
+type ArbitrarySpaceIndexes []int
+
+func (asi ArbitrarySpaceIndexes) Generate(rand *rand.Rand, size int) reflect.Value {
+	length := 9 * size / math.MaxInt64
+	spaceIndexes := rand.Perm(9)[:length]
+	return reflect.ValueOf(spaceIndexes)
+}
+
 func TestBoardSpaces(t *testing.T) {
 	t.Run("Initializes as empty, with all spaces available", func(t *testing.T) {
 		assert := assert.New(t)
 
-		board := EmptyBoard()
+		board := NewEmptyTestBoard()
 
 		availableSpaces := make([]int, len(board.spaces))
 		for i, space := range board.spaces {
@@ -49,32 +68,77 @@ func TestBoardSpaces(t *testing.T) {
 	t.Run("Returns number of spaces for each token", func(t *testing.T) {
 		assert := assert.New(t)
 
-		randomSpaceIndexes := func(values []reflect.Value, rand *rand.Rand) {
-			spaceIndexes := rand.Perm(9)[:rand.Intn(9)]
-			values[0] = reflect.ValueOf(spaceIndexes)
-		}
-
-		qcErr := quick.Check(func(spaceIndexes []int) bool {
-			board := EmptyBoard()
-			xsSpaceIndexes := spaceIndexes[:len(spaceIndexes)/2]
-			osSpaceIndexes := spaceIndexes[len(spaceIndexes)/2:]
-			for _, index := range xsSpaceIndexes {
-				board = board.AssignSpace(index, X)
+		qcErr := quick.Check(func(spaceIndexes ArbitrarySpaceIndexes) bool {
+			board := NewEmptyTestBoard()
+			xs := []int{}
+			os := []int{}
+			for _, space := range spaceIndexes {
+				if board.ActivePlayerToken() == x {
+					xs = append(xs, space)
+				} else {
+					os = append(os, space)
+				}
+				var state GameState
+				board, state, _ = board.AssignSpace(space)
+				if state != Pending {
+					// don't keep going if state ends
+					break
+				}
 			}
-			for _, index := range osSpaceIndexes {
-				board = board.AssignSpace(index, O)
-			}
 
-			return assert.ElementsMatch(xsSpaceIndexes, board.SpacesAssignedTo(x)) &&
-				assert.ElementsMatch(osSpaceIndexes, board.SpacesAssignedTo(o))
-		}, &quick.Config{Values: randomSpaceIndexes})
+			gotExpectedXs := assert.ElementsMatch(xs, board.SpacesAssignedTo(x))
+			gotExpectedOs := assert.ElementsMatch(os, board.SpacesAssignedTo(o))
+
+			takenSpaces := append(xs, os...)
+			availableSpaces := []int{}
+			for i := 0; i < board.SpacesLen(); i++ {
+				isTaken := false
+				for _, takenSpace := range takenSpaces {
+					if takenSpace == i {
+						isTaken = true
+						break
+					}
+				}
+				if !isTaken {
+					availableSpaces = append(availableSpaces, i)
+				}
+			}
+			gotExpectedAvailableSpaces := assert.ElementsMatch(availableSpaces, board.AvailableSpaces())
+
+			return gotExpectedXs && gotExpectedOs && gotExpectedAvailableSpaces
+		}, nil)
 
 		assert.NoError(qcErr)
 	})
 }
 
+func TestBoard_AssigningSpacesAdvancesTurn(t *testing.T) {
+	require := require.New(t)
+
+	board := NewEmptyTestBoard()
+	require.Equal(0, board.turn)
+	require.Equal(x, board.ActivePlayerToken())
+
+	var state GameState
+	board, state, _ = board.AssignSpace(0)
+	require.Equal(1, board.turn)
+	require.Equal(o, board.ActivePlayerToken())
+	if state != Pending {
+		t.Fatalf("State should be pending, got %s", state)
+	}
+
+	board, state, _ = board.AssignSpace(1)
+	require.Equal(2, board.turn)
+	require.Equal(x, board.ActivePlayerToken())
+	if state != Pending {
+		t.Fatalf("State should be pending, got %s", state)
+	}
+}
+
 func ExampleBoard_SpacesAssignedTo() {
-	board := EmptyBoard().AssignSpace(0, X).AssignSpace(1, O).AssignSpace(2, X)
+	board, _, _ := NewEmptyTestBoard().AssignSpace(0)
+	board, _, _ = board.AssignSpace(1)
+	board, _, _ = board.AssignSpace(2)
 	xsSpaces := board.SpacesAssignedTo(x)
 	osSpaces := board.SpacesAssignedTo(o)
 	fmt.Println(fmt.Sprintf("X has %d spaces: %d and %d", len(xsSpaces), xsSpaces[0], xsSpaces[1]))
@@ -120,45 +184,21 @@ func TestBoardVectors(t *testing.T) {
 	})
 }
 
-func TestAssignSpace(t *testing.T) {
-	t.Run("Returns all but the assigned spaces", func(t *testing.T) {
-		testTakingAvailableSpace(t, EmptyBoard())
-	})
-}
-
-func testTakingAvailableSpace(t *testing.T, board Board) {
-	t.Helper()
-	assert := assert.New(t)
-
-	preAssignAvailableSpaces := board.AvailableSpaces()
-	spaceToAssign := preAssignAvailableSpaces[0]
-	expectedSpacesAfterAssign := preAssignAvailableSpaces[1:]
-
-	newBoard := board.AssignSpace(spaceToAssign, X)
-
-	assert.Equal(X, newBoard.spaces[spaceToAssign])
-	assert.Equal(expectedSpacesAfterAssign, newBoard.AvailableSpaces())
-	assert.Equal(preAssignAvailableSpaces, board.AvailableSpaces(), "original board should remain the same")
-	assert.False(newBoard.IsSpaceAvailable(spaceToAssign))
-
-	if len(newBoard.AvailableSpaces()) != 0 {
-		testTakingAvailableSpace(t, newBoard)
-	}
-}
-
 func TestBoardPrinting(t *testing.T) {
 	t.Run("Prints expected output when empty", func(t *testing.T) {
 		assert := assert.New(t)
 
-		board := EmptyBoard()
+		board := NewEmptyTestBoard()
 
 		assert.Equal(
-			` 0 | 1 | 2 
-===+===+===
- 3 | 4 | 5 
-===+===+===
- 6 | 7 | 8 
-`,
+			strings.Join([]string{
+				" 0 | 1 | 2 ",
+				rowSeparator,
+				" 3 | 4 | 5 ",
+				rowSeparator,
+				" 6 | 7 | 8 ",
+				"",
+			}, "\n"),
 			board.String())
 	})
 
