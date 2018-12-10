@@ -44,6 +44,25 @@ func Test_minimaxUtils(t *testing.T) {
 	})
 }
 
+func Test_minimaxTieScoring(t *testing.T) {
+	assert := assert.New(t)
+
+	mm := minimax{
+		maxPlayer: 'x',
+		minPlayer: 'o',
+	}
+
+	board := NewTestBoardWithSpaces([]Space{
+		X, O, X,
+		X, X, O,
+		O, nil, O,
+	})
+
+	score := mm.score(7, board, 0)
+
+	assert.Equal(0.0, score.value)
+}
+
 func Test_minimaxScoring(t *testing.T) {
 	assert := assert.New(t)
 
