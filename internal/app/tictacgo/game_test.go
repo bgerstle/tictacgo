@@ -46,14 +46,7 @@ func TestGame_PlayerForToken(t *testing.T) {
 		PlayerInfo{Token: o},
 	}
 
-	g := Game{
-		Player1: &mockPlayer1,
-		Player2: &mockPlayer2,
-		Board: NewBoard([2]PlayerInfo{
-			mockPlayer1.Info(),
-			mockPlayer2.Info(),
-		}),
-	}
+	g := NewGame(&mockPlayer1, &mockPlayer2, nil)
 
 	playerForX := g.PlayerForSpace(X)
 	require.NotNil(playerForX)
@@ -84,21 +77,13 @@ func TestPlayChoosesMovesThenEnds(t *testing.T) {
 	}
 	mockReporter := MockGameReporter{}
 
-	g := Game{
-		Player1: &mockPlayer1,
-		Player2: &mockPlayer2,
-		Board: NewBoard([2]PlayerInfo{
-			mockPlayer1.Info(),
-			mockPlayer2.Info(),
-		}),
-		Reporter: &mockReporter,
-	}
+	g := NewGame(&mockPlayer1, &mockPlayer2, &mockReporter)
 
-	mockReporter.On("ReportGameStart", g.Board).Return().Once()
+	mockReporter.On("ReportGameStart", g.board).Return().Once()
 
 	expectedSpaces := interleaveInts(finalBoard.SpacesAssignedTo(x), finalBoard.SpacesAssignedTo(o))
 
-	expectedBoard := g.Board
+	expectedBoard := g.board
 	for _, space := range expectedSpaces {
 		var currentPlayer *MockPlayer
 		if expectedBoard.ActivePlayerToken() == mockPlayer1.Token {
@@ -121,7 +106,7 @@ func TestPlayChoosesMovesThenEnds(t *testing.T) {
 
 	require.NotNil(winner)
 	assert.Equal(&g.Player1, winner)
-	assert.Equal(finalBoard, g.Board)
+	assert.Equal(finalBoard, g.board)
 	mockReporter.AssertExpectations(t)
 	mockPlayer1.AssertExpectations(t)
 	mockPlayer2.AssertExpectations(t)

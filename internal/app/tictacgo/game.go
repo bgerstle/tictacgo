@@ -15,8 +15,20 @@ type GameReporter interface {
 type Game struct {
 	Player1  Player
 	Player2  Player
-	Board    Board
 	Reporter GameReporter
+	board    Board
+}
+
+func NewGame(p1, p2 Player, r GameReporter) Game {
+	return Game{
+		p1,
+		p2,
+		r,
+		NewBoard([2]PlayerInfo{
+			p1.Info(),
+			p2.Info(),
+		}),
+	}
 }
 
 // PlayerForToken returns a reference to the player with a matching token.
@@ -36,14 +48,14 @@ func (g Game) PlayerForSpace(s Space) *Player {
 // on the board in turn, assigning it on the board, and repeating until
 // the game state isn't pending.
 func (g *Game) Play() (GameState, *Player) {
-	state, winningSpace := g.Board.GameState()
+	state, winningSpace := g.board.GameState()
 
 	if state != Pending {
 		return state, g.PlayerForSpace(winningSpace)
 	}
 
 	if g.Reporter != nil {
-		g.Reporter.ReportGameStart(g.Board)
+		g.Reporter.ReportGameStart(g.board)
 	}
 
 	var winningPlayer *Player
@@ -60,24 +72,24 @@ func (g *Game) Play() (GameState, *Player) {
 }
 
 func (g *Game) takeTurn() (GameState, *Player) {
-	currentToken := g.Board.ActivePlayerToken()
+	currentToken := g.board.ActivePlayerToken()
 	currentPlayer := g.PlayerForSpace(&currentToken)
 
 	// ask current player to choose their space
-	space := (*currentPlayer).ChooseSpace(g.Board)
+	space := (*currentPlayer).ChooseSpace(g.board)
 
 	// assign it on the board
 	var (
 		state        GameState
 		winningSpace Space
 	)
-	g.Board, state, winningSpace = g.Board.AssignSpace(space)
+	g.board, state, winningSpace = g.board.AssignSpace(space)
 
 	// report progress
 	if g.Reporter != nil {
-		g.Reporter.ReportGameProgress(g.Board, currentToken, space)
+		g.Reporter.ReportGameProgress(g.board, currentToken, space)
 		if state != Pending {
-			g.Reporter.ReportGameEnd(g.Board, state, winningSpace)
+			g.Reporter.ReportGameEnd(g.board, state, winningSpace)
 		}
 	}
 

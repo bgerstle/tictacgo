@@ -19,31 +19,33 @@ func TestBotPlayer(t *testing.T) {
 func TestBotPlayer_AlwaysTies(t *testing.T) {
 	assert := assert.New(t)
 
-	botX := BotPlayer{
-		PlayerInfo{Token: 'X'},
-	}
-	botO := BotPlayer{
-		PlayerInfo{Token: 'O'},
-	}
+	for i := 0; i < 5; i++ {
+		botX := BotPlayer{
+			PlayerInfo{Token: 'X'},
+		}
+		botO := BotPlayer{
+			PlayerInfo{Token: 'O'},
+		}
 
-	g := Game{
-		botX,
-		botO,
-		NewBoard([2]PlayerInfo{
-			botX.Info(),
-			botO.Info(),
-		}),
-		nil,
-	}
+		g := Game{
+			botX,
+			botO,
+			nil,
+			NewBoard([2]PlayerInfo{
+				botX.Info(),
+				botO.Info(),
+			}),
+		}
 
-	state, winner := g.Play()
+		state, winner := g.Play()
 
-	if state != Tie {
-		// bot shouldn't be beatable—even by itself!
-		t.Fatalf(
-			"Bot should not have been beatable, but result was: %s for %#v",
-			state,
-			winner)
+		if state != Tie {
+			// bot shouldn't be beatable—even by itself!
+			t.Fatalf(
+				"Bot should not have been beatable, but result was: %s for %#v",
+				state,
+				winner)
+		}
+		assert.Nil(winner)
 	}
-	assert.Nil(winner)
 }

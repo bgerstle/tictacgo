@@ -18,17 +18,13 @@ func main() {
 		PlayerInfo: tictacgo.PlayerInfo{Token: 'O'},
 	}
 
-	game := tictacgo.Game{
-		Player1: player1,
-		Player2: player2,
-		Board: tictacgo.NewBoard([2]tictacgo.PlayerInfo{
-			player1.Info(),
-			player2.Info(),
-		}),
-		Reporter: tictacgo.ConsoleReporter{
+	game := tictacgo.NewGame(
+		player1,
+		player2,
+		tictacgo.ConsoleReporter{
 			Out: os.Stdout,
 		},
-	}
+	)
 
 	game.Play()
 }
