@@ -62,8 +62,6 @@ func (mm minimax) scoreVictory(winner rune, depth int) float64 {
 }
 
 func (mm minimax) score(space int, board Board, depth int) score {
-	playerToken := board.ActivePlayerToken()
-
 	nextBoard, state, winner := board.AssignSpace(space)
 
 	switch state {
@@ -91,7 +89,7 @@ func (mm minimax) score(space int, board Board, depth int) score {
 	scores := mm.scoreSpaces(nextBoard, depth+1)
 	return score{
 		spaceIndex: space,
-		value:      mm.minOrMax(playerToken, scores).value,
+		value:      mm.minOrMax(nextBoard.ActivePlayerToken(), scores).value,
 	}
 }
 
