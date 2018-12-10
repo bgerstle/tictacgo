@@ -38,7 +38,7 @@ The robot overlords cometh. For now, just pick random moves.
 ## v0.5.0
 Make the robot unbeatable (minmimax).
 
-- [ ] Implement minimax algorithm
+- [x] Implement minimax algorithm
 
 ## Unscheduled features
 Better, faster, stronger
