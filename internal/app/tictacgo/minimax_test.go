@@ -117,6 +117,27 @@ type ArbitraryNearVictoryBoard struct {
 	ArbitraryVictoryBoard
 }
 
+func Test_minimax_arbitraryPicksWinningMove(t *testing.T) {
+	assert := assert.New(t)
+
+	picksWinningMove := func(avb ArbitraryVictoryBoard) bool {
+		xsSpaces := avb.SpacesAssignedTo(avb.WinningToken)
+		osSpaces := avb.SpacesAssignedTo(avb.LosingToken)
+
+		// create a new board by removing X's last winning move
+		preVictoryBoard := NewBoard(avb.Board.players).fillWithSpaces([2][]int{
+			xsSpaces[0 : len(xsSpaces)-1],
+			osSpaces,
+		})
+
+		blockingMove := chooseSpaceForActivePlayer(preVictoryBoard)
+
+		return blockingMove == xsSpaces[len(xsSpaces)-1]
+	}
+
+	assert.NoError(quick.Check(picksWinningMove, nil))
+}
+
 func Test_minimax_arbitraryBlockOpponent(t *testing.T) {
 	assert := assert.New(t)
 
@@ -132,12 +153,8 @@ func Test_minimax_arbitraryBlockOpponent(t *testing.T) {
 
 		blockingMove := chooseSpaceForActivePlayer(preVictoryBoard)
 
-		for _, x := range xsSpaces {
-			if blockingMove == x {
-				return true
-			}
-		}
-		return false
+		// should have picked the move that was taken from X
+		return blockingMove == xsSpaces[0]
 	}
 
 	assert.NoError(quick.Check(blocksOpponent, nil))
