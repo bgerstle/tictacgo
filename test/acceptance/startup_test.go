@@ -60,5 +60,46 @@ func TestEnterMove(t *testing.T) {
 	// discard empty line after prompt
 	testHarness.Out.ReadString(byte('\n'))
 
+	firstBoardLine, firstBoardLineErr := testHarness.Out.ReadString(byte('\n'))
+	assert.NoError(firstBoardLineErr)
+
+	assert.Equal(" X | 1 | 2 ", strings.TrimRight(firstBoardLine, "\n"))
+
+	testHarness.Cmd.Process.Kill()
+}
+
+func TestInvalidMove(t *testing.T) {
+	assert := assert.New(t)
+	require := require.New(t)
+
+	testHarness := StartTicTacGo(t)
+
+	testHarness.ReadInitialOutput()
+
+	expectedPrompt := fmt.Sprintf(tictacgo.PlayerMovePromptf, 'X')
+
+	expectedNumBytes := len([]byte(expectedPrompt))
+
+	promptBuf := make([]byte, expectedNumBytes)
+	readBytes, readError := testHarness.Out.Read(promptBuf)
+
+	require.Nil(readError)
+	require.Equal(expectedNumBytes, readBytes)
+
+	actualPrompt := string(promptBuf)
+
+	assert.Equal(expectedPrompt, actualPrompt)
+
+	fmt.Fprintln(testHarness.In, "a")
+
+	// read validation error
+
+	validationErrorMsg, validationErrorReadErr := testHarness.Out.ReadString('\n')
+	assert.NoError(validationErrorReadErr)
+
+	assert.Equal(
+		tictacgo.InputNotNumberErrorMessage,
+		strings.TrimRight(validationErrorMsg, "\n"))
+
 	testHarness.Cmd.Process.Kill()
 }
