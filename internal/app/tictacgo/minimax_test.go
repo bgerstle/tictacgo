@@ -88,9 +88,9 @@ func Example_minimax_ChooseSpot() {
 		nil, nil, nil,
 	})
 
-	xsBest := chooseSpotForActivePlayer(board)
+	xsBest := chooseSpaceForActivePlayer(board)
 	board, _, _ = board.AssignSpace(6)
-	osBest := chooseSpotForActivePlayer(board)
+	osBest := chooseSpaceForActivePlayer(board)
 
 	fmt.Println(fmt.Sprintf("X's winning move in spot %d was chosen", xsBest))
 	fmt.Println(fmt.Sprintf("O's winning move in spot %d was chosen", osBest))

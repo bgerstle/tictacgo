@@ -27,9 +27,11 @@ func TestHumanPlayer(t *testing.T) {
 			mockCP := MockchoiceProvider{}
 
 			HumanPlayer := HumanPlayer{
-				PlayerInfo:     PlayerInfo{Token: 'X'},
+				PlayerInfo:     PlayerInfo{Token: x},
 				choiceProvider: &mockCP,
 			}
+
+			assert.Equal(x, HumanPlayer.Info().Token)
 
 			mockCP.On("getChoice", HumanPlayer.PlayerInfo, board).Return(expectedChoice, nil)
 

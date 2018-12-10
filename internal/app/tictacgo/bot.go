@@ -7,5 +7,5 @@ type BotPlayer struct {
 
 // ChooseSpace will use fancy algorithms to pick an available space on the board.
 func (bp BotPlayer) ChooseSpace(b Board) int {
-	return b.AvailableSpaces()[0]
+	return chooseSpaceForActivePlayer(b)
 }

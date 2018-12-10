@@ -7,12 +7,12 @@ import (
 )
 
 // entry point to minimax algorithm.
-func chooseSpotForActivePlayer(board Board) int {
+func chooseSpaceForActivePlayer(board Board) int {
 	mm := minimax{
 		maxPlayer: board.ActivePlayerToken(),
 		minPlayer: board.NextPlayerToken(),
 	}
-	return mm.chooseSpotAtDepth(board, 0)
+	return mm.chooseSpaceAtDepth(board, 0)
 }
 
 const maxScore = math.MaxFloat64
@@ -104,7 +104,7 @@ func (mm minimax) scoreSpaces(board Board, depth int) (scores []score) {
 	return
 }
 
-func (mm minimax) chooseSpotAtDepth(board Board, depth int) int {
+func (mm minimax) chooseSpaceAtDepth(board Board, depth int) int {
 	playerToken := board.ActivePlayerToken()
 	scores := mm.scoreSpaces(board, depth)
 	return mm.minOrMax(playerToken, scores).spaceIndex
