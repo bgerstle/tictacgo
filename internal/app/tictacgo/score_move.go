@@ -51,6 +51,8 @@ func (mm minimax) minOrMax(player rune, ss []score) score {
 	return ss[0]
 }
 
+// Score a victory for the specified winner at the given depth.
+// Earlier, shallower victories are given more weight than victories later in the game, i.e. deeper
 func (mm minimax) scoreVictory(winner rune, depth int) float64 {
 	return mm.scoreModifier(winner) * maxScore / float64(depth)
 }
