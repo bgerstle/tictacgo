@@ -13,7 +13,7 @@ func TestHumanChoiceProviderIntegration(t *testing.T) {
 	t.Run("returns choice specified in input", func(t *testing.T) {
 		assert := assert.New(t)
 
-		board := EmptyBoard()
+		board := NewEmptyTestBoard()
 
 		for spaceNum := range board.AvailableSpaces() {
 			mockOutput := &bytes.Buffer{}
@@ -38,7 +38,7 @@ func TestHumanChoiceProviderIntegration(t *testing.T) {
 	t.Run("returns second, valid choice after invalid choice", func(t *testing.T) {
 		assert := assert.New(t)
 
-		board := EmptyBoard()
+		board := NewEmptyTestBoard()
 
 		mockOutput := &bytes.Buffer{}
 

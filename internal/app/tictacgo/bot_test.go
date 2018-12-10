@@ -14,5 +14,5 @@ func TestBotPlayer(t *testing.T) {
 	}
 
 	assert.Equal('O', bot.Info().Token)
-	assert.Equal(0, bot.ChooseSpace(EmptyBoard()))
+	assert.Equal(0, bot.ChooseSpace(NewEmptyTestBoard()))
 }

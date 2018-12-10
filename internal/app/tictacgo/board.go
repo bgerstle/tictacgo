@@ -33,14 +33,6 @@ func NewBoard(players [2]PlayerInfo) Board {
 	return b
 }
 
-// EmptyBoard creates a new Board with empty spaces.
-func EmptyBoard() Board {
-	return NewBoard([2]PlayerInfo{
-		PlayerInfo{'X'},
-		PlayerInfo{'O'},
-	})
-}
-
 func (b Board) ActivePlayerToken() rune {
 	index := b.turn % len(b.players)
 	return b.players[index].Token

@@ -21,7 +21,7 @@ func TestHumanPlayer(t *testing.T) {
 	t.Run("Returns value when no error occurred", func(t *testing.T) {
 		assert := assert.New(t)
 
-		board := EmptyBoard()
+		board := NewEmptyTestBoard()
 
 		for expectedChoice := range board.spaces {
 			mockCP := MockchoiceProvider{}
@@ -42,7 +42,7 @@ func TestHumanPlayer(t *testing.T) {
 	t.Run("Retries on error", func(t *testing.T) {
 		assert := assert.New(t)
 
-		board := EmptyBoard()
+		board := NewEmptyTestBoard()
 
 		mockCP := MockchoiceProvider{}
 

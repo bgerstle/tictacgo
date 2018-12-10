@@ -56,7 +56,10 @@ func (testHarness AppTestHarness) ReadBoard() []string {
 	testHarness.t.Helper()
 	require := require.New(testHarness.t)
 
-	expectedBoardLines := strings.Split(tictacgo.EmptyBoard().String(), "\n")
+	expectedBoardLines := strings.Split(tictacgo.NewBoard([2]tictacgo.PlayerInfo{
+		tictacgo.PlayerInfo{Token: 'X'},
+		tictacgo.PlayerInfo{Token: 'O'},
+	}).String(), "\n")
 	// drop trailing empty line
 	expectedBoardLines = expectedBoardLines[0 : len(expectedBoardLines)-1]
 	expectedBoardLinesLen := len(expectedBoardLines)
